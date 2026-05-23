@@ -63,10 +63,10 @@ export default function Dashboard() {
 
   const BoardModal = ({ title, onSubmit, onClose }: { title: string; onSubmit: (e: React.FormEvent) => void; onClose: () => void }) => (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 w-full max-w-md">
+      <div className="bg-bg1 border border-bdr/10 rounded-2xl p-6 w-full max-w-md">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-semibold text-white">{title}</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-white"><X className="w-5 h-5" /></button>
+          <h2 className="text-lg font-semibold text-tx1">{title}</h2>
+          <button onClick={onClose} className="text-tx3 hover:text-tx1"><X className="w-5 h-5" /></button>
         </div>
         <form onSubmit={onSubmit} className="space-y-4">
           <Input
@@ -106,7 +106,7 @@ export default function Dashboard() {
   )
 
   return (
-    <div className="flex h-screen bg-gray-950 text-white overflow-hidden">
+    <div className="flex h-screen bg-bg0 text-tx1 overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar title="Dashboard" />
@@ -120,14 +120,14 @@ export default function Dashboard() {
           )}
 
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-white mb-1">Seus quadros</h2>
-            <p className="text-gray-400 text-sm">Gerencie seus projetos e equipes</p>
+            <h2 className="text-2xl font-bold text-tx1 mb-1">Seus quadros</h2>
+            <p className="text-tx2 text-sm">Gerencie seus projetos e equipes</p>
           </div>
 
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-36 bg-gray-900 rounded-xl border border-white/5 animate-pulse" />
+                <div key={i} className="h-36 bg-bg1 rounded-xl border border-bdr/5 animate-pulse" />
               ))}
             </div>
           ) : (
@@ -136,20 +136,20 @@ export default function Dashboard() {
                 <div
                   key={board.id}
                   onClick={() => navigate(`/board/${board.id}`)}
-                  className="group relative text-left bg-gray-900 border border-white/5 rounded-xl p-5 hover:border-white/20 hover:bg-gray-800/80 transition-all cursor-pointer"
+                  className="group relative text-left bg-bg1 border border-bdr/5 rounded-xl p-5 hover:border-bdr/20 hover:bg-bg2/80 transition-all cursor-pointer"
                 >
                   {/* Ações hover */}
                   <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={(e) => openEdit(e, board)}
-                      className="p-1.5 rounded-lg bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+                      className="p-1.5 rounded-lg bg-bg2 text-tx2 hover:text-tx1 hover:bg-bg3 transition-colors"
                       title="Editar quadro"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={(e) => handleDelete(e, board)}
-                      className="p-1.5 rounded-lg bg-gray-800 text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                      className="p-1.5 rounded-lg bg-bg2 text-tx2 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                       title="Deletar quadro"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -163,15 +163,15 @@ export default function Dashboard() {
                     >
                       <Layers className="w-5 h-5" style={{ color: board.color }} />
                     </div>
-                    <span className="text-xs text-gray-600 group-hover:text-gray-500 transition-colors pr-14">
+                    <span className="text-xs text-tx3 group-hover:text-tx3 transition-colors pr-14">
                       {board._count?.columns ?? 0} colunas
                     </span>
                   </div>
-                  <h3 className="font-semibold text-white mb-1 truncate">{board.title}</h3>
+                  <h3 className="font-semibold text-tx1 mb-1 truncate">{board.title}</h3>
                   {board.description && (
-                    <p className="text-xs text-gray-500 truncate mb-3">{board.description}</p>
+                    <p className="text-xs text-tx3 truncate mb-3">{board.description}</p>
                   )}
-                  <div className="flex items-center gap-1 text-xs text-gray-600">
+                  <div className="flex items-center gap-1 text-xs text-tx3">
                     <Clock className="w-3 h-3" />
                     {format(new Date(board.updatedAt), "dd 'de' MMM", { locale: ptBR })}
                   </div>
@@ -180,7 +180,7 @@ export default function Dashboard() {
 
               <button
                 onClick={() => { setForm(emptyForm); setShowCreate(true) }}
-                className="h-36 border border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-600 hover:text-gray-400 hover:border-white/20 transition-all"
+                className="h-36 border border-dashed border-bdr/10 rounded-xl flex flex-col items-center justify-center gap-2 text-tx3 hover:text-tx2 hover:border-bdr/20 transition-all"
               >
                 <Plus className="w-6 h-6" />
                 <span className="text-sm">Novo quadro</span>

@@ -21,7 +21,7 @@ const ROLE_LABEL: Record<UserRole, string> = {
 const ROLE_COLOR: Record<UserRole, string> = {
   ADMIN: 'text-purple-400 bg-purple-500/10',
   LEADER: 'text-blue-400 bg-blue-500/10',
-  MEMBER: 'text-gray-400 bg-white/5',
+  MEMBER: 'text-tx2 bg-bdr/5',
 }
 
 export default function Users() {
@@ -104,7 +104,7 @@ export default function Users() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-950 text-white overflow-hidden">
+    <div className="flex h-screen bg-bg0 text-tx1 overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar title="Usuários" />
@@ -112,8 +112,8 @@ export default function Users() {
           <div className="max-w-3xl mx-auto">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-2xl font-bold text-white mb-1">Gerenciar Usuários</h2>
-                <p className="text-gray-400 text-sm">Crie e gerencie os acessos da equipe</p>
+                <h2 className="text-2xl font-bold text-tx1 mb-1">Gerenciar Usuários</h2>
+                <p className="text-tx2 text-sm">Crie e gerencie os acessos da equipe</p>
               </div>
               <Button onClick={() => setShowForm(true)}>
                 <Plus className="w-4 h-4 mr-2" />
@@ -123,10 +123,10 @@ export default function Users() {
 
             {/* Formulário de criação */}
             {showForm && (
-              <div className="bg-gray-900 border border-white/10 rounded-xl p-6 mb-6">
+              <div className="bg-bg1 border border-bdr/10 rounded-xl p-6 mb-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-white">Criar novo usuário</h3>
-                  <button onClick={() => { setShowForm(false); setError('') }} className="text-gray-500 hover:text-white">
+                  <h3 className="font-semibold text-tx1">Criar novo usuário</h3>
+                  <button onClick={() => { setShowForm(false); setError('') }} className="text-tx3 hover:text-tx1">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
@@ -159,11 +159,11 @@ export default function Users() {
                       minLength={6}
                     />
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1.5">Função</label>
+                      <label className="block text-sm font-medium text-tx2 mb-1.5">Função</label>
                       <select
                         value={form.role}
                         onChange={(e) => setForm({ ...form, role: e.target.value as UserRole })}
-                        className="w-full px-3 py-2.5 bg-gray-800 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-brand-500"
+                        className="w-full px-3 py-2.5 bg-bg2 border border-bdr/10 rounded-lg text-tx1 text-sm focus:outline-none focus:border-brand-500"
                       >
                         <option value="MEMBER">Membro</option>
                         <option value="LEADER">Líder</option>
@@ -188,10 +188,10 @@ export default function Users() {
 
             {/* Modal de edição */}
             {editingUser && (
-              <div className="bg-gray-900 border border-white/10 rounded-xl p-6 mb-6">
+              <div className="bg-bg1 border border-bdr/10 rounded-xl p-6 mb-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-white">Editar — {editingUser.name}</h3>
-                  <button onClick={() => setEditingUser(null)} className="text-gray-500 hover:text-white">
+                  <h3 className="font-semibold text-tx1">Editar — {editingUser.name}</h3>
+                  <button onClick={() => setEditingUser(null)} className="text-tx3 hover:text-tx1">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
@@ -221,11 +221,11 @@ export default function Users() {
                       minLength={editForm.password ? 6 : undefined}
                     />
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1.5">Função</label>
+                      <label className="block text-sm font-medium text-tx2 mb-1.5">Função</label>
                       <select
                         value={editForm.role}
                         onChange={(e) => setEditForm({ ...editForm, role: e.target.value as UserRole })}
-                        className="w-full px-3 py-2.5 bg-gray-800 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-brand-500"
+                        className="w-full px-3 py-2.5 bg-bg2 border border-bdr/10 rounded-lg text-tx1 text-sm focus:outline-none focus:border-brand-500"
                       >
                         <option value="MEMBER">Membro</option>
                         <option value="LEADER">Líder</option>
@@ -249,37 +249,37 @@ export default function Users() {
             )}
 
             {/* Lista de usuários */}
-            <div className="bg-gray-900 border border-white/10 rounded-xl overflow-hidden">
+            <div className="bg-bg1 border border-bdr/10 rounded-xl overflow-hidden">
               {loading ? (
                 <div className="p-6 space-y-3">
                   {[...Array(3)].map((_, i) => (
-                    <div key={i} className="h-14 bg-gray-800 rounded-lg animate-pulse" />
+                    <div key={i} className="h-14 bg-bg2 rounded-lg animate-pulse" />
                   ))}
                 </div>
               ) : users.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-gray-500">
+                <div className="flex flex-col items-center justify-center py-16 text-tx3">
                   <UsersIcon className="w-10 h-10 mb-3 opacity-30" />
                   <p>Nenhum usuário encontrado</p>
                 </div>
               ) : (
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-white/5 text-xs text-gray-500 uppercase tracking-wider">
+                    <tr className="border-b border-bdr/5 text-xs text-tx3 uppercase tracking-wider">
                       <th className="text-left px-5 py-3 font-medium">Usuário</th>
                       <th className="text-left px-5 py-3 font-medium">Função</th>
                       <th className="text-left px-5 py-3 font-medium">Criado em</th>
                       <th className="px-5 py-3" />
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className="divide-y divide-bdr/5">
                     {users.map((u) => (
-                      <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
+                      <tr key={u.id} className="hover:bg-bdr/[0.02] transition-colors">
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-3">
                             <Avatar name={u.name} src={u.avatar} size="sm" />
                             <div>
-                              <p className="text-sm font-medium text-white">{u.name}</p>
-                              <p className="text-xs text-gray-500">{u.email}</p>
+                              <p className="text-sm font-medium text-tx1">{u.name}</p>
+                              <p className="text-xs text-tx3">{u.email}</p>
                             </div>
                           </div>
                         </td>
@@ -289,21 +289,21 @@ export default function Users() {
                             {ROLE_LABEL[u.role]}
                           </span>
                         </td>
-                        <td className="px-5 py-4 text-sm text-gray-500">
+                        <td className="px-5 py-4 text-sm text-tx3">
                           {format(new Date(u.createdAt), "dd 'de' MMM, yyyy", { locale: ptBR })}
                         </td>
                         <td className="px-5 py-4 text-right">
                           <div className="flex items-center justify-end gap-1">
                             <button
                               onClick={() => openEdit(u)}
-                              className="p-1.5 text-gray-600 hover:text-brand-400 hover:bg-brand-500/10 rounded-lg transition-colors"
+                              className="p-1.5 text-tx3 hover:text-brand-400 hover:bg-brand-500/10 rounded-lg transition-colors"
                             >
                               <Pencil className="w-4 h-4" />
                             </button>
                             {u.id !== user?.id && (
                               <button
                                 onClick={() => handleDelete(u.id, u.name)}
-                                className="p-1.5 text-gray-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                className="p-1.5 text-tx3 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>

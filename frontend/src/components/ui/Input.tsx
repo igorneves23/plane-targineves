@@ -8,12 +8,12 @@ interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
 export function Input({ label, error, className, ...props }: Props) {
   return (
     <div className="flex flex-col gap-1">
-      {label && <label className="text-sm font-medium text-gray-300">{label}</label>}
+      {label && <label className="text-sm font-medium text-tx2">{label}</label>}
       <input
         {...props}
         className={clsx(
-          'w-full px-3 py-2 rounded-lg bg-white/5 border text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors',
-          error ? 'border-red-500' : 'border-white/10',
+          'w-full px-3 py-2 rounded-lg bg-bdr/5 border text-sm text-tx1 placeholder-tx3 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors',
+          error ? 'border-red-500' : 'border-bdr/10',
           className
         )}
       />
@@ -29,11 +29,11 @@ interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement
 export function Textarea({ label, className, ...props }: TextareaProps) {
   return (
     <div className="flex flex-col gap-1">
-      {label && <label className="text-sm font-medium text-gray-300">{label}</label>}
+      {label && <label className="text-sm font-medium text-tx2">{label}</label>}
       <textarea
         {...props}
         className={clsx(
-          'w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors resize-none',
+          'w-full px-3 py-2 rounded-lg bg-bdr/5 border border-bdr/10 text-sm text-tx1 placeholder-tx3 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors resize-none',
           className
         )}
       />

@@ -34,10 +34,10 @@ export function MembersSection({ card, onUpdate }: Props) {
     <div className="space-y-2">
       <div className="flex flex-wrap gap-1.5">
         {card.members?.map(({ user, userId }) => (
-          <div key={userId} className="flex items-center gap-1 bg-white/5 rounded-full pl-1 pr-2 py-0.5">
+          <div key={userId} className="flex items-center gap-1 bg-bdr/5 rounded-full pl-1 pr-2 py-0.5">
             <Avatar name={user.name} src={user.avatar} size="xs" />
-            <span className="text-xs text-gray-300">{user.name.split(' ')[0]}</span>
-            <button onClick={() => toggle(userId)} className="ml-0.5 text-gray-500 hover:text-red-400 transition-colors">
+            <span className="text-xs text-tx2">{user.name.split(' ')[0]}</span>
+            <button onClick={() => toggle(userId)} className="ml-0.5 text-tx3 hover:text-red-400 transition-colors">
               <X className="w-3 h-3" />
             </button>
           </div>
@@ -47,17 +47,17 @@ export function MembersSection({ card, onUpdate }: Props) {
       <div className="relative">
         <button
           onClick={() => setOpen((o) => !o)}
-          className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors"
+          className="flex items-center gap-1 text-xs text-tx3 hover:text-tx1 transition-colors"
         >
           <Plus className="w-3 h-3" /> Adicionar
         </button>
         {open && (
-          <div className="absolute top-full left-0 mt-1 w-48 bg-gray-800 border border-white/10 rounded-lg shadow-xl z-20 py-1 max-h-48 overflow-y-auto">
+          <div className="absolute top-full left-0 mt-1 w-48 bg-bg2 border border-bdr/10 rounded-lg shadow-xl z-20 py-1 max-h-48 overflow-y-auto">
             {users.map((u) => (
               <button
                 key={u.id}
                 onClick={() => toggle(u.id)}
-                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-tx2 hover:bg-bdr/5 hover:text-tx1 transition-colors"
               >
                 <Avatar name={u.name} src={u.avatar} size="xs" />
                 <span className="truncate">{u.name}</span>

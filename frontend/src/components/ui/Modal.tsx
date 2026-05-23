@@ -24,11 +24,11 @@ export function Modal({ open, onClose, title, children, size = 'md' }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className={clsx('relative w-full bg-gray-900 border border-white/10 rounded-xl shadow-2xl animate-slide-up', sizes[size])}>
+      <div className={clsx('relative w-full bg-bg1 border border-bdr/10 rounded-xl shadow-2xl animate-slide-up', sizes[size])}>
         {title && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-            <h2 className="font-semibold text-white">{title}</h2>
-            <button onClick={onClose} className="p-1 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-bdr/10">
+            <h2 className="font-semibold text-tx1">{title}</h2>
+            <button onClick={onClose} className="p-1 rounded hover:bg-bdr/10 text-tx2 hover:text-tx1 transition-colors">
               <X className="w-4 h-4" />
             </button>
           </div>

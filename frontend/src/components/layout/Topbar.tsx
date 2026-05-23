@@ -36,8 +36,8 @@ export function Topbar({ title }: Props) {
 
   return (
     <>
-      <header className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-gray-950/80 backdrop-blur-sm sticky top-0 z-10">
-        <h1 className="font-semibold text-white text-lg">{title || 'Plane'}</h1>
+      <header className="h-14 border-b border-bdr/5 flex items-center justify-between px-6 bg-bg1/80 backdrop-blur-sm sticky top-0 z-10">
+        <h1 className="font-semibold text-tx1 text-lg">{title || 'Plane'}</h1>
         <Button onClick={() => setOpen(true)} size="sm">
           <Plus className="w-4 h-4" />
           Novo quadro
@@ -60,7 +60,7 @@ export function Topbar({ title }: Props) {
             onChange={(e) => setDesc(e.target.value)}
           />
           <div>
-            <p className="text-sm font-medium text-gray-300 mb-2">Cor</p>
+            <p className="text-sm font-medium text-tx2 mb-2">Cor</p>
             <div className="flex gap-2 flex-wrap">
               {COLORS.map((c) => (
                 <button

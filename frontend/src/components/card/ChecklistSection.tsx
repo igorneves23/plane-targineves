@@ -39,12 +39,12 @@ export function ChecklistSection({ card, onUpdate }: Props) {
             onChange={() => toggleItem(item)}
             className="accent-brand-500 w-4 h-4 shrink-0 cursor-pointer"
           />
-          <span className={clsx('text-sm flex-1', item.completed ? 'line-through text-gray-500' : 'text-gray-200')}>
+          <span className={clsx('text-sm flex-1', item.completed ? 'line-through text-tx3' : 'text-tx1')}>
             {item.title}
           </span>
           <button
             onClick={() => deleteItem(item.id)}
-            className="opacity-0 group-hover/item:opacity-100 p-1 rounded hover:bg-red-500/10 text-gray-500 hover:text-red-400 transition-all"
+            className="opacity-0 group-hover/item:opacity-100 p-1 rounded hover:bg-red-500/10 text-tx3 hover:text-red-400 transition-all"
           >
             <Trash2 className="w-3 h-3" />
           </button>
@@ -58,20 +58,20 @@ export function ChecklistSection({ card, onUpdate }: Props) {
             onChange={(e) => setNewItem(e.target.value)}
             placeholder="Novo item..."
             autoFocus
-            className="flex-1 bg-gray-800 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="flex-1 bg-bg2 border border-bdr/10 rounded-lg px-3 py-1.5 text-sm text-tx1 placeholder-tx3 focus:outline-none focus:ring-1 focus:ring-brand-500"
             onKeyDown={(e) => { if (e.key === 'Escape') setAdding(false) }}
           />
           <button type="submit" className="px-3 py-1.5 bg-brand-500 hover:bg-brand-600 text-white text-xs rounded-lg font-medium transition-colors">
             Adicionar
           </button>
-          <button type="button" onClick={() => setAdding(false)} className="px-2 text-gray-400 hover:text-white text-xs transition-colors">
+          <button type="button" onClick={() => setAdding(false)} className="px-2 text-tx2 hover:text-tx1 text-xs transition-colors">
             ✕
           </button>
         </form>
       ) : (
         <button
           onClick={() => setAdding(true)}
-          className="flex items-center gap-2 text-xs text-gray-500 hover:text-white transition-colors pt-1"
+          className="flex items-center gap-2 text-xs text-tx3 hover:text-tx1 transition-colors pt-1"
         >
           <Plus className="w-3 h-3" /> Adicionar item
         </button>

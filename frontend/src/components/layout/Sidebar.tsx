@@ -19,14 +19,14 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-64 shrink-0 h-screen flex flex-col bg-gray-950 border-r border-white/5">
+    <aside className="w-64 shrink-0 h-screen flex flex-col bg-bg1 border-r border-bdr/5">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-white/5">
+      <div className="px-5 py-5 border-b border-bdr/5">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">P</span>
           </div>
-          <span className="font-semibold text-white text-lg">Plane</span>
+          <span className="font-semibold text-tx1 text-lg">Plane</span>
         </div>
       </div>
 
@@ -38,7 +38,7 @@ export function Sidebar() {
             'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
             location.pathname === '/dashboard'
               ? 'bg-brand-500/20 text-brand-400'
-              : 'text-gray-400 hover:bg-white/5 hover:text-white'
+              : 'text-tx2 hover:bg-bdr/5 hover:text-tx1'
           )}
         >
           <LayoutDashboard className="w-4 h-4" />
@@ -52,7 +52,7 @@ export function Sidebar() {
               'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
               location.pathname === '/users'
                 ? 'bg-brand-500/20 text-brand-400'
-                : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                : 'text-tx2 hover:bg-bdr/5 hover:text-tx1'
             )}
           >
             <Users className="w-4 h-4" />
@@ -62,7 +62,7 @@ export function Sidebar() {
 
         {boards.length > 0 && (
           <div className="mt-4">
-            <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Quadros</p>
+            <p className="px-3 text-xs font-semibold text-tx3 uppercase tracking-wider mb-2">Quadros</p>
             {boards.map((board) => (
               <Link
                 key={board.id}
@@ -70,8 +70,8 @@ export function Sidebar() {
                 className={clsx(
                   'flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors',
                   location.pathname === `/board/${board.id}`
-                    ? 'bg-white/10 text-white'
-                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                    ? 'bg-bdr/10 text-tx1'
+                    : 'text-tx2 hover:bg-bdr/5 hover:text-tx1'
                 )}
               >
                 <div className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: board.color }} />
@@ -84,17 +84,17 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-3 py-4 border-t border-white/5 space-y-1">
+      <div className="px-3 py-4 border-t border-bdr/5 space-y-1">
         <button
           onClick={toggle}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-tx2 hover:bg-bdr/5 hover:text-tx1 transition-colors"
         >
           {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           {theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
         </button>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-red-500/10 hover:text-red-400 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-tx2 hover:bg-red-500/10 hover:text-red-400 transition-colors"
         >
           <LogOut className="w-4 h-4" />
           Sair
@@ -103,8 +103,8 @@ export function Sidebar() {
           <div className="flex items-center gap-3 px-3 py-2 mt-2">
             <Avatar name={user.name} src={user.avatar} size="sm" />
             <div className="min-w-0">
-              <p className="text-sm font-medium text-white truncate">{user.name}</p>
-              <p className="text-xs text-gray-500 truncate">{user.role}</p>
+              <p className="text-sm font-medium text-tx1 truncate">{user.name}</p>
+              <p className="text-xs text-tx3 truncate">{user.role}</p>
             </div>
           </div>
         )}

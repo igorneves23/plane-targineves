@@ -42,7 +42,7 @@ export function CommentsSection({ card, onUpdate }: Props) {
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Adicionar comentário..."
-            className="flex-1 bg-gray-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="flex-1 bg-bg2 border border-bdr/10 rounded-lg px-3 py-2 text-sm text-tx1 placeholder-tx3 focus:outline-none focus:ring-1 focus:ring-brand-500"
           />
           <button
             type="submit"
@@ -61,20 +61,20 @@ export function CommentsSection({ card, onUpdate }: Props) {
             <Avatar name={comment.user.name} src={comment.user.avatar} size="sm" className="shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-white">{comment.user.name}</span>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs font-semibold text-tx1">{comment.user.name}</span>
+                <span className="text-xs text-tx3">
                   {format(new Date(comment.createdAt), "dd 'de' MMM 'às' HH:mm", { locale: ptBR })}
                 </span>
                 {(comment.userId === user?.id || user?.role === 'ADMIN') && (
                   <button
                     onClick={() => deleteComment(comment.id)}
-                    className="ml-auto opacity-0 group-hover/comment:opacity-100 p-1 rounded hover:bg-red-500/10 text-gray-500 hover:text-red-400 transition-all"
+                    className="ml-auto opacity-0 group-hover/comment:opacity-100 p-1 rounded hover:bg-red-500/10 text-tx3 hover:text-red-400 transition-all"
                   >
                     <Trash2 className="w-3 h-3" />
                   </button>
                 )}
               </div>
-              <p className="text-sm text-gray-300 mt-0.5 leading-relaxed">{comment.content}</p>
+              <p className="text-sm text-tx2 mt-0.5 leading-relaxed">{comment.content}</p>
             </div>
           </div>
         ))}

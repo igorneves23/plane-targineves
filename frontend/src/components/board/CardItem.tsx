@@ -42,8 +42,8 @@ export function CardItem({ card, onClick }: Props) {
       {...listeners}
       onClick={onClick}
       className={clsx(
-        'bg-gray-800/70 border border-white/[0.06] rounded-xl p-3 cursor-pointer',
-        'hover:border-white/20 hover:bg-gray-800 transition-all select-none',
+        'bg-bg1 border border-bdr/[0.06] rounded-xl p-3 cursor-pointer',
+        'hover:border-bdr/20 hover:shadow-sm transition-all select-none',
         isDragging && 'opacity-40 ring-2 ring-brand-500/60 shadow-xl'
       )}
     >
@@ -51,73 +51,58 @@ export function CardItem({ card, onClick }: Props) {
       {card.labels?.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-2.5">
           {card.labels.map(({ label }) => (
-            <span
-              key={label.id}
-              className="h-1.5 rounded-full w-8"
-              style={{ backgroundColor: label.color }}
-            />
+            <span key={label.id} className="h-1.5 rounded-full w-8" style={{ backgroundColor: label.color }} />
           ))}
         </div>
       )}
 
       {/* Título */}
-      <p className="text-sm font-medium text-white leading-snug mb-3">{card.title}</p>
+      <p className="text-sm font-medium text-tx1 leading-snug mb-3">{card.title}</p>
 
       {/* Badges e membros */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center flex-wrap gap-1.5">
-          {/* Prioridade */}
           {card.priority !== 'LOW' && (
-            <span
-              className="w-2 h-2 rounded-full shrink-0"
-              style={{ backgroundColor: PRIORITY_DOT[card.priority] }}
-              title={card.priority}
-            />
+            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PRIORITY_DOT[card.priority] }} />
           )}
 
-          {/* Data de vencimento */}
           {card.dueDate && (
-            <span
-              className={clsx(
-                'inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full',
-                isOverdue
-                  ? 'bg-red-500/15 text-red-400 border border-red-500/20'
-                  : 'bg-white/5 text-gray-400 border border-white/5'
-              )}
-            >
+            <span className={clsx(
+              'inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full',
+              isOverdue
+                ? 'bg-red-500/15 text-red-400 border border-red-500/20'
+                : 'bg-bdr/5 text-tx3 border border-bdr/5'
+            )}>
               <Clock className="w-3 h-3" />
               {formatDueDate(card.dueDate)}
               {card.recurring && <RefreshCw className="w-2.5 h-2.5 ml-0.5" />}
             </span>
           )}
 
-          {/* Checklist */}
           {totalItems > 0 && (
             <span className={clsx(
               'inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border',
               doneItems === totalItems
-                ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                : 'bg-white/5 text-gray-400 border-white/5'
+                ? 'bg-green-500/10 text-green-600 border-green-500/20'
+                : 'bg-bdr/5 text-tx3 border-bdr/5'
             )}>
               <CheckSquare className="w-3 h-3" />
               {doneItems}/{totalItems}
             </span>
           )}
 
-          {/* Comentários */}
           {commentCount > 0 && (
-            <span className="inline-flex items-center gap-1 text-xs text-gray-500 px-1">
+            <span className="inline-flex items-center gap-1 text-xs text-tx3 px-1">
               <MessageSquare className="w-3 h-3" />
               {commentCount}
             </span>
           )}
         </div>
 
-        {/* Membros */}
         {card.members?.length > 0 && (
           <div className="flex -space-x-1.5 shrink-0">
             {card.members.slice(0, 3).map(({ user }) => (
-              <Avatar key={user.id} name={user.name} src={user.avatar} size="xs" className="ring-1 ring-gray-900" />
+              <Avatar key={user.id} name={user.name} src={user.avatar} size="xs" className="ring-1 ring-bg1" />
             ))}
           </div>
         )}

@@ -2,34 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  html {
-    @apply bg-gray-950 text-white;
-  }
-
-  * {
-    @apply box-border;
-  }
-
-  ::-webkit-scrollbar {
-    @apply w-1.5 h-1.5;
-  }
-
-  ::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    @apply bg-white/10 rounded-full;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-white/20;
-  }
+/* ── Semantic color tokens ─────────────────────────────────────────────────
+   Light  → default (:root)
+   Dark   → .dark class on <html>
+   Usage  : bg-bg0, text-tx1, border-bdr/10, hover:bg-bdr/5 …
+───────────────────────────────────────────────────────────────────────────*/
+:root {
+  --bg0: 248 250 252;   /* slate-50  – app background   */
+  --bg1: 255 255 255;   /* white     – panel / card     */
+  --bg2: 241 245 249;   /* slate-100 – elevated surface */
+  --bg3: 226 232 240;   /* slate-200 – more elevated    */
+  --tx1: 15 23 42;      /* slate-900 – primary text     */
+  --tx2: 71 85 105;     /* slate-600 – secondary text   */
+  --tx3: 100 116 139;   /* slate-500 – muted text       */
+  --bdr: 15 23 42;      /* slate-900 – border base      */
 }
 
-@layer utilities {
-  .bg-gray-750 {
-    background-color: #2a2a35;
+.dark {
+  --bg0: 3 7 18;        /* gray-950 */
+  --bg1: 17 24 39;      /* gray-900 */
+  --bg2: 31 41 55;      /* gray-800 */
+  --bg3: 55 65 81;      /* gray-700 */
+  --tx1: 255 255 255;   /* white    */
+  --tx2: 156 163 175;   /* gray-400 */
+  --tx3: 107 114 128;   /* gray-500 */
+  --bdr: 255 255 255;   /* white    */
+}
+
+@layer base {
+  html {
+    background-color: rgb(var(--bg0));
+    color: rgb(var(--tx1));
   }
+
+  * { @apply box-border; }
+
+  ::-webkit-scrollbar       { @apply w-1.5 h-1.5; }
+  ::-webkit-scrollbar-track { @apply bg-transparent; }
+  ::-webkit-scrollbar-thumb { background-color: rgb(var(--bdr) / 0.1); @apply rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { background-color: rgb(var(--bdr) / 0.2); }
 }

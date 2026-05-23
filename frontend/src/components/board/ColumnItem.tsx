@@ -55,22 +55,24 @@ export function ColumnItem({ column, onCardClick }: Props) {
       <div
         className={clsx(
           'flex items-center gap-2 px-3 py-2.5 rounded-2xl',
-          collapsed ? 'flex-col h-full bg-gray-900/60 border border-white/5 justify-start pt-4 pb-4' : 'bg-gray-900/60 border border-white/5 border-b-0 rounded-b-none mb-0'
+          collapsed
+            ? 'flex-col h-full bg-bg1 border border-bdr/5 justify-start pt-4 pb-4'
+            : 'bg-bg1 border border-bdr/5 border-b-0 rounded-b-none'
         )}
         {...attributes}
         {...listeners}
       >
         {collapsed ? (
           <>
-            <span className="text-xs font-semibold text-white [writing-mode:vertical-rl] rotate-180 mt-2 truncate max-h-40">
+            <span className="text-xs font-semibold text-tx1 [writing-mode:vertical-rl] rotate-180 mt-2 truncate max-h-40">
               {column.title}
             </span>
-            <span className="text-xs text-gray-500 bg-white/5 px-1.5 py-0.5 rounded-full">
+            <span className="text-xs text-tx3 bg-bdr/5 px-1.5 py-0.5 rounded-full">
               {column.cards.length}
             </span>
             <button
               onClick={() => setCollapsed(false)}
-              className="mt-auto p-1 text-gray-500 hover:text-white transition-colors"
+              className="mt-auto p-1 text-tx3 hover:text-tx1 transition-colors"
             >
               <ChevronsLeftRight className="w-3.5 h-3.5" />
             </button>
@@ -84,21 +86,20 @@ export function ColumnItem({ column, onCardClick }: Props) {
                   onChange={(e) => setColTitle(e.target.value)}
                   onBlur={() => handleRenameColumn()}
                   autoFocus
-                  className="w-full bg-transparent text-sm font-bold text-white focus:outline-none border-b border-brand-500"
+                  className="w-full bg-transparent text-sm font-bold text-tx1 focus:outline-none border-b border-brand-500"
                 />
               </form>
             ) : (
-              <span className="flex-1 text-sm font-bold text-white truncate">{column.title}</span>
+              <span className="flex-1 text-sm font-bold text-tx1 truncate">{column.title}</span>
             )}
 
-            <span className="text-xs font-medium text-gray-400 bg-white/5 px-2 py-0.5 rounded-full shrink-0">
+            <span className="text-xs font-medium text-tx3 bg-bdr/5 px-2 py-0.5 rounded-full shrink-0">
               {column.cards.length}
             </span>
 
             <button
               onClick={() => setCollapsed(true)}
-              className="p-1 text-gray-500 hover:text-white transition-colors shrink-0"
-              title="Recolher"
+              className="p-1 text-tx3 hover:text-tx1 transition-colors shrink-0"
             >
               <ChevronsLeftRight className="w-3.5 h-3.5" />
             </button>
@@ -106,17 +107,17 @@ export function ColumnItem({ column, onCardClick }: Props) {
             <div className="relative shrink-0">
               <button
                 onClick={() => setMenuOpen((v) => !v)}
-                className="p-1 rounded-lg text-gray-500 hover:text-white hover:bg-white/10 transition-colors"
+                className="p-1 rounded-lg text-tx3 hover:text-tx1 hover:bg-bdr/10 transition-colors"
               >
                 <MoreHorizontal className="w-4 h-4" />
               </button>
               {menuOpen && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-                  <div className="absolute right-0 top-full mt-1 w-36 bg-gray-800 border border-white/10 rounded-xl shadow-xl z-20 overflow-hidden">
+                  <div className="absolute right-0 top-full mt-1 w-36 bg-bg2 border border-bdr/10 rounded-xl shadow-xl z-20 overflow-hidden">
                     <button
                       onClick={() => { setEditing(true); setMenuOpen(false) }}
-                      className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                      className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-tx2 hover:text-tx1 hover:bg-bdr/5 transition-colors"
                     >
                       <Pencil className="w-3.5 h-3.5" /> Renomear
                     </button>
@@ -136,7 +137,7 @@ export function ColumnItem({ column, onCardClick }: Props) {
 
       {/* Cards */}
       {!collapsed && (
-        <div className="flex-1 flex flex-col bg-gray-900/40 border border-white/5 border-t-0 rounded-b-2xl">
+        <div className="flex-1 flex flex-col bg-bg1/40 border border-bdr/5 border-t-0 rounded-b-2xl">
           <div className="flex-1 overflow-y-auto p-2 space-y-2 min-h-[40px]">
             <SortableContext items={column.cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
               {column.cards.map((card) => (
@@ -145,31 +146,23 @@ export function ColumnItem({ column, onCardClick }: Props) {
             </SortableContext>
           </div>
 
-          {/* Add card */}
           <div className="p-2 pt-0">
             {adding ? (
-              <form onSubmit={handleAddCard} className="space-y-2 p-2 bg-gray-800/60 rounded-xl border border-white/5">
+              <form onSubmit={handleAddCard} className="space-y-2 p-2 bg-bg2/60 rounded-xl border border-bdr/5">
                 <textarea
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   placeholder="Título do cartão..."
                   autoFocus
                   rows={2}
-                  className="w-full bg-transparent text-sm text-white placeholder-gray-500 focus:outline-none resize-none"
+                  className="w-full bg-transparent text-sm text-tx1 placeholder-tx3 focus:outline-none resize-none"
                   onKeyDown={(e) => { if (e.key === 'Escape') setAdding(false) }}
                 />
                 <div className="flex gap-2">
-                  <button
-                    type="submit"
-                    className="px-3 py-1.5 bg-brand-500 hover:bg-brand-600 text-white text-xs rounded-lg font-medium transition-colors"
-                  >
+                  <button type="submit" className="px-3 py-1.5 bg-brand-500 hover:bg-brand-600 text-white text-xs rounded-lg font-medium transition-colors">
                     Adicionar
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setAdding(false)}
-                    className="px-3 py-1.5 text-gray-400 hover:text-white text-xs transition-colors"
-                  >
+                  <button type="button" onClick={() => setAdding(false)} className="px-3 py-1.5 text-tx2 hover:text-tx1 text-xs transition-colors">
                     Cancelar
                   </button>
                 </div>
@@ -177,7 +170,7 @@ export function ColumnItem({ column, onCardClick }: Props) {
             ) : (
               <button
                 onClick={() => setAdding(true)}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-500 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-tx3 hover:text-tx1 hover:bg-bdr/5 rounded-xl transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 Adicionar um cartão

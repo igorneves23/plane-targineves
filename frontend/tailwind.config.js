@@ -5,6 +5,14 @@ export default {
   theme: {
     extend: {
       colors: {
+        bg0: 'rgb(var(--bg0) / <alpha-value>)',
+        bg1: 'rgb(var(--bg1) / <alpha-value>)',
+        bg2: 'rgb(var(--bg2) / <alpha-value>)',
+        bg3: 'rgb(var(--bg3) / <alpha-value>)',
+        tx1: 'rgb(var(--tx1) / <alpha-value>)',
+        tx2: 'rgb(var(--tx2) / <alpha-value>)',
+        tx3: 'rgb(var(--tx3) / <alpha-value>)',
+        bdr: 'rgb(var(--bdr) / <alpha-value>)',
         brand: {
           50: '#eef2ff',
           100: '#e0e7ff',

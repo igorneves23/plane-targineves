@@ -84,8 +84,7 @@ export function CardModal({ card: initialCard, onClose }: Props) {
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-10 pb-4 px-4 overflow-y-auto">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative w-full max-w-3xl bg-gray-900 border border-white/10 rounded-2xl shadow-2xl animate-slide-up">
-        {/* Top color bar */}
+      <div className="relative w-full max-w-3xl bg-bg1 border border-bdr/10 rounded-2xl shadow-2xl animate-slide-up">
         <div className="h-1.5 rounded-t-2xl bg-brand-500" />
 
         {/* Header */}
@@ -98,41 +97,41 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                 onBlur={saveTitle}
                 onKeyDown={(e) => { if (e.key === 'Enter') saveTitle(); if (e.key === 'Escape') { setTitle(card.title); setEditingTitle(false) } }}
                 autoFocus
-                className="w-full bg-transparent text-xl font-bold text-white focus:outline-none border-b border-brand-500 pb-1"
+                className="w-full bg-transparent text-xl font-bold text-tx1 focus:outline-none border-b border-brand-500 pb-1"
               />
             ) : (
               <h2
                 onClick={() => setEditingTitle(true)}
-                className="text-xl font-bold text-white cursor-text hover:text-brand-300 transition-colors leading-tight"
+                className="text-xl font-bold text-tx1 cursor-text hover:text-brand-500 transition-colors leading-tight"
               >
                 {card.title}
               </h2>
             )}
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-tx3 mt-1">
               Criado por {card.createdBy?.name} · {format(new Date(card.createdAt), "dd/MM/yyyy 'às' HH:mm")}
             </p>
           </div>
           <div className="flex items-center gap-1">
-            {saving && <span className="text-xs text-gray-500 animate-pulse">Salvando...</span>}
-            <button onClick={handleDelete} className="p-2 rounded-lg hover:bg-red-500/10 text-gray-500 hover:text-red-400 transition-colors">
+            {saving && <span className="text-xs text-tx3 animate-pulse">Salvando...</span>}
+            <button onClick={handleDelete} className="p-2 rounded-lg hover:bg-red-500/10 text-tx3 hover:text-red-400 transition-colors">
               <Trash2 className="w-4 h-4" />
             </button>
-            <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/10 text-gray-500 hover:text-white transition-colors">
+            <button onClick={onClose} className="p-2 rounded-lg hover:bg-bdr/10 text-tx3 hover:text-tx1 transition-colors">
               <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-0 divide-x divide-white/5">
+        <div className="grid grid-cols-3 gap-0 divide-x divide-bdr/5">
           {/* Main content */}
           <div className="col-span-2 px-6 pb-6 space-y-6">
             {/* Description */}
             <div>
-              <div className="flex items-center gap-2 text-gray-400 mb-2">
+              <div className="flex items-center gap-2 text-tx2 mb-2">
                 <AlignLeft className="w-4 h-4" />
                 <span className="text-sm font-medium">Descrição</span>
                 {!editingDesc && (
-                  <button onClick={() => setEditingDesc(true)} className="ml-auto p-1 rounded hover:bg-white/10 text-gray-500 hover:text-white transition-colors">
+                  <button onClick={() => setEditingDesc(true)} className="ml-auto p-1 rounded hover:bg-bdr/10 text-tx3 hover:text-tx1 transition-colors">
                     <Edit3 className="w-3 h-3" />
                   </button>
                 )}
@@ -145,13 +144,13 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                     autoFocus
                     rows={4}
                     placeholder="Adicione uma descrição..."
-                    className="w-full bg-gray-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-brand-500 resize-none"
+                    className="w-full bg-bg2 border border-bdr/10 rounded-lg px-3 py-2 text-sm text-tx1 placeholder-tx3 focus:outline-none focus:ring-1 focus:ring-brand-500 resize-none"
                   />
                   <div className="flex gap-2">
                     <button onClick={saveDesc} className="flex items-center gap-1 px-3 py-1.5 bg-brand-500 hover:bg-brand-600 text-white text-xs rounded-lg font-medium transition-colors">
                       <Check className="w-3 h-3" /> Salvar
                     </button>
-                    <button onClick={() => { setDesc(card.description || ''); setEditingDesc(false) }} className="px-3 py-1.5 text-gray-400 hover:text-white text-xs transition-colors">
+                    <button onClick={() => { setDesc(card.description || ''); setEditingDesc(false) }} className="px-3 py-1.5 text-tx2 hover:text-tx1 text-xs transition-colors">
                       Cancelar
                     </button>
                   </div>
@@ -159,24 +158,22 @@ export function CardModal({ card: initialCard, onClose }: Props) {
               ) : (
                 <p
                   onClick={() => setEditingDesc(true)}
-                  className="text-sm text-gray-400 cursor-text hover:text-gray-300 min-h-[2rem] leading-relaxed"
+                  className="text-sm text-tx2 cursor-text hover:text-tx1 min-h-[2rem] leading-relaxed"
                 >
-                  {card.description || <span className="italic text-gray-600">Clique para adicionar descrição...</span>}
+                  {card.description || <span className="italic text-tx3">Clique para adicionar descrição...</span>}
                 </p>
               )}
             </div>
 
             {/* Checklist */}
             <div>
-              <div className="flex items-center gap-2 text-gray-400 mb-3">
+              <div className="flex items-center gap-2 text-tx2 mb-3">
                 <CheckSquare className="w-4 h-4" />
                 <span className="text-sm font-medium">Checklist</span>
-                {total > 0 && (
-                  <span className="ml-auto text-xs text-gray-500">{done}/{total}</span>
-                )}
+                {total > 0 && <span className="ml-auto text-xs text-tx3">{done}/{total}</span>}
               </div>
               {total > 0 && (
-                <div className="h-1.5 bg-gray-800 rounded-full mb-3 overflow-hidden">
+                <div className="h-1.5 bg-bg2 rounded-full mb-3 overflow-hidden">
                   <div className="h-full bg-brand-500 rounded-full transition-all" style={{ width: `${(done / total) * 100}%` }} />
                 </div>
               )}
@@ -185,7 +182,7 @@ export function CardModal({ card: initialCard, onClose }: Props) {
 
             {/* Comments */}
             <div>
-              <div className="flex items-center gap-2 text-gray-400 mb-3">
+              <div className="flex items-center gap-2 text-tx2 mb-3">
                 <MessageSquare className="w-4 h-4" />
                 <span className="text-sm font-medium">Comentários</span>
               </div>
@@ -197,7 +194,7 @@ export function CardModal({ card: initialCard, onClose }: Props) {
           <div className="px-4 py-6 space-y-5">
             {/* Status */}
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Status</p>
+              <p className="text-xs font-semibold text-tx3 uppercase tracking-wider mb-2">Status</p>
               <div className="space-y-1">
                 {STATUSES.map((s) => (
                   <button
@@ -205,7 +202,7 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                     onClick={() => patch({ status: s.value } as Partial<Card>)}
                     className={clsx(
                       'w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
-                      card.status === s.value ? 'bg-brand-500/20 text-brand-300' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                      card.status === s.value ? 'bg-brand-500/20 text-brand-500' : 'text-tx2 hover:bg-bdr/5 hover:text-tx1'
                     )}
                   >
                     {s.label}
@@ -217,8 +214,8 @@ export function CardModal({ card: initialCard, onClose }: Props) {
             {/* Priority */}
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <Flag className="w-3 h-3 text-gray-500" />
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Prioridade</p>
+                <Flag className="w-3 h-3 text-tx3" />
+                <p className="text-xs font-semibold text-tx3 uppercase tracking-wider">Prioridade</p>
               </div>
               <div className="space-y-1">
                 {PRIORITIES.map((p) => (
@@ -227,7 +224,7 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                     onClick={() => patch({ priority: p.value } as Partial<Card>)}
                     className={clsx(
                       'w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-2',
-                      card.priority === p.value ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                      card.priority === p.value ? 'bg-bdr/10 text-tx1' : 'text-tx2 hover:bg-bdr/5 hover:text-tx1'
                     )}
                   >
                     <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
@@ -240,22 +237,22 @@ export function CardModal({ card: initialCard, onClose }: Props) {
             {/* Due date */}
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <Calendar className="w-3 h-3 text-gray-500" />
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Vencimento</p>
+                <Calendar className="w-3 h-3 text-tx3" />
+                <p className="text-xs font-semibold text-tx3 uppercase tracking-wider">Vencimento</p>
               </div>
               <input
                 type="datetime-local"
                 value={card.dueDate ? card.dueDate.slice(0, 16) : ''}
                 onChange={(e) => patch({ dueDate: e.target.value || null } as Partial<Card>)}
-                className="w-full bg-gray-800 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
             </div>
 
             {/* Members */}
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <Users className="w-3 h-3 text-gray-500" />
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Responsáveis</p>
+                <Users className="w-3 h-3 text-tx3" />
+                <p className="text-xs font-semibold text-tx3 uppercase tracking-wider">Responsáveis</p>
               </div>
               <MembersSection card={card} onUpdate={setCard} />
             </div>
@@ -263,8 +260,8 @@ export function CardModal({ card: initialCard, onClose }: Props) {
             {/* Labels */}
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <Tag className="w-3 h-3 text-gray-500" />
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Etiquetas</p>
+                <Tag className="w-3 h-3 text-tx3" />
+                <p className="text-xs font-semibold text-tx3 uppercase tracking-wider">Etiquetas</p>
               </div>
               <LabelsSection card={card} onUpdate={setCard} />
             </div>
@@ -272,8 +269,8 @@ export function CardModal({ card: initialCard, onClose }: Props) {
             {/* Recurrence */}
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <RotateCcw className="w-3 h-3 text-gray-500" />
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Recorrência</p>
+                <RotateCcw className="w-3 h-3 text-tx3" />
+                <p className="text-xs font-semibold text-tx3 uppercase tracking-wider">Recorrência</p>
               </div>
               <label className="flex items-center gap-2 mb-2 cursor-pointer">
                 <input
@@ -282,13 +279,13 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                   onChange={(e) => patch({ recurring: e.target.checked } as Partial<Card>)}
                   className="accent-brand-500 w-4 h-4"
                 />
-                <span className="text-xs text-gray-300">Ativar recorrência</span>
+                <span className="text-xs text-tx2">Ativar recorrência</span>
               </label>
               {card.recurring && (
                 <select
                   value={card.recurringType || ''}
                   onChange={(e) => patch({ recurringType: e.target.value as RecurringType } as Partial<Card>)}
-                  className="w-full bg-gray-800 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500"
                 >
                   <option value="">Selecionar...</option>
                   {RECURRING_TYPES.map((r) => (

@@ -78,23 +78,22 @@ export function BoardView({ board }: Props) {
               <ColumnItem key={col.id} column={col} onCardClick={setActiveCard} />
             ))}
 
-            {/* Add column */}
             <div className="w-72 shrink-0">
               {addingCol ? (
-                <form onSubmit={handleAddColumn} className="bg-gray-900 border border-white/5 rounded-xl p-4 space-y-3">
+                <form onSubmit={handleAddColumn} className="bg-bg1 border border-bdr/5 rounded-xl p-4 space-y-3">
                   <input
                     value={newColTitle}
                     onChange={(e) => setNewColTitle(e.target.value)}
                     placeholder="Nome da coluna..."
                     autoFocus
-                    className="w-full bg-gray-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                    className="w-full bg-bg2 border border-bdr/10 rounded-lg px-3 py-2 text-sm text-tx1 placeholder-tx3 focus:outline-none focus:ring-1 focus:ring-brand-500"
                     onKeyDown={(e) => { if (e.key === 'Escape') setAddingCol(false) }}
                   />
                   <div className="flex gap-2">
                     <button type="submit" className="px-4 py-1.5 bg-brand-500 hover:bg-brand-600 text-white text-sm rounded-lg font-medium transition-colors">
                       Criar
                     </button>
-                    <button type="button" onClick={() => setAddingCol(false)} className="px-3 py-1.5 text-gray-400 hover:text-white text-sm transition-colors">
+                    <button type="button" onClick={() => setAddingCol(false)} className="px-3 py-1.5 text-tx2 hover:text-tx1 text-sm transition-colors">
                       Cancelar
                     </button>
                   </div>
@@ -102,7 +101,7 @@ export function BoardView({ board }: Props) {
               ) : (
                 <button
                   onClick={() => setAddingCol(true)}
-                  className="w-full flex items-center gap-2 px-4 py-3 rounded-xl border border-dashed border-white/10 text-gray-500 hover:text-white hover:border-white/30 hover:bg-white/5 transition-all text-sm"
+                  className="w-full flex items-center gap-2 px-4 py-3 rounded-xl border border-dashed border-bdr/10 text-tx3 hover:text-tx1 hover:border-bdr/30 hover:bg-bdr/5 transition-all text-sm"
                 >
                   <Plus className="w-4 h-4" /> Adicionar coluna
                 </button>
