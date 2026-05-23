@@ -20,12 +20,14 @@ export interface Label {
 
 export interface CardLabel {
   id: string
+  cardId?: string
   labelId: string
   label: Label
 }
 
 export interface CardMember {
   id: string
+  cardId?: string
   userId: string
   user: Pick<User, 'id' | 'name' | 'avatar'>
 }
