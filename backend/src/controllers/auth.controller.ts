@@ -26,20 +26,25 @@ export async function register(req: Request, res: Response) {
 
   const { name, email, password, role } = parsed.data
 
-  const exists = await prisma.user.findUnique({ where: { email } })
-  if (exists) {
-    res.status(409).json({ error: 'Email já cadastrado' })
-    return
+  try {
+    const exists = await prisma.user.findUnique({ where: { email } })
+    if (exists) {
+      res.status(409).json({ error: 'Email já cadastrado' })
+      return
+    }
+
+    const hash = await bcrypt.hash(password, 10)
+    const user = await prisma.user.create({
+      data: { name, email, password: hash, role: role ?? 'MEMBER' },
+      select: { id: true, name: true, email: true, role: true, avatar: true },
+    })
+
+    const token = signToken({ userId: user.id, role: user.role })
+    res.status(201).json({ user, token })
+  } catch (err: any) {
+    console.error('[register error]', err)
+    res.status(500).json({ error: err?.message || 'Erro interno ao criar conta' })
   }
-
-  const hash = await bcrypt.hash(password, 10)
-  const user = await prisma.user.create({
-    data: { name, email, password: hash, role: role ?? 'MEMBER' },
-    select: { id: true, name: true, email: true, role: true, avatar: true },
-  })
-
-  const token = signToken({ userId: user.id, role: user.role })
-  res.status(201).json({ user, token })
 }
 
 export async function login(req: Request, res: Response) {
