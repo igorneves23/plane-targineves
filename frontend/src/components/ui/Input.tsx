@@ -1,0 +1,42 @@
+import clsx from 'clsx'
+
+interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string
+  error?: string
+}
+
+export function Input({ label, error, className, ...props }: Props) {
+  return (
+    <div className="flex flex-col gap-1">
+      {label && <label className="text-sm font-medium text-gray-300">{label}</label>}
+      <input
+        {...props}
+        className={clsx(
+          'w-full px-3 py-2 rounded-lg bg-white/5 border text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors',
+          error ? 'border-red-500' : 'border-white/10',
+          className
+        )}
+      />
+      {error && <p className="text-xs text-red-400">{error}</p>}
+    </div>
+  )
+}
+
+interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label?: string
+}
+
+export function Textarea({ label, className, ...props }: TextareaProps) {
+  return (
+    <div className="flex flex-col gap-1">
+      {label && <label className="text-sm font-medium text-gray-300">{label}</label>}
+      <textarea
+        {...props}
+        className={clsx(
+          'w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors resize-none',
+          className
+        )}
+      />
+    </div>
+  )
+}

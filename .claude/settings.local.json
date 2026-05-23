@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem -Recurse -File \"C:\\\\Users\\\\isnow\\\\Desktop\\\\Cowork\\\\app-plena\" | Where-Object { $_.FullName -notmatch 'node_modules' } | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\Users\\\\isnow\\\\Desktop\\\\Cowork\\\\app-plena\\\\\", \"\"\\) } | Sort-Object)"
+    ]
+  }
+}

@@ -1,0 +1,195 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  LEADER
+  MEMBER
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum CardStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum RecurringType {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      UserRole @default(MEMBER)
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBoards Board[]      @relation("BoardCreator")
+  cardMembers   CardMember[]
+  comments      Comment[]
+  activities    Activity[]
+  createdCards  Card[]       @relation("CardCreator")
+
+  @@map("users")
+}
+
+model Board {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  color       String   @default("#6366f1")
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy User     @relation("BoardCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  columns   Column[]
+
+  @@map("boards")
+}
+
+model Column {
+  id        String   @id @default(cuid())
+  boardId   String
+  title     String
+  position  Int
+  createdAt DateTime @default(now())
+
+  board Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  cards Card[]
+
+  @@map("columns")
+}
+
+model Card {
+  id            String         @id @default(cuid())
+  columnId      String
+  title         String
+  description   String?
+  priority      Priority       @default(MEDIUM)
+  dueDate       DateTime?
+  status        CardStatus     @default(TODO)
+  position      Int            @default(0)
+  recurring     Boolean        @default(false)
+  recurringType RecurringType?
+  nextExecution DateTime?
+  createdById   String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  column      Column          @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  createdBy   User            @relation("CardCreator", fields: [createdById], references: [id])
+  members     CardMember[]
+  checklist   ChecklistItem[]
+  comments    Comment[]
+  labels      CardLabel[]
+  attachments Attachment[]
+  activities  Activity[]
+
+  @@map("cards")
+}
+
+model CardMember {
+  id     String @id @default(cuid())
+  cardId String
+  userId String
+
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([cardId, userId])
+  @@map("card_members")
+}
+
+model ChecklistItem {
+  id        String   @id @default(cuid())
+  cardId    String
+  title     String
+  completed Boolean  @default(false)
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@map("checklist_items")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  cardId    String
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+model Label {
+  id    String @id @default(cuid())
+  name  String
+  color String @default("#6366f1")
+
+  cards CardLabel[]
+
+  @@map("labels")
+}
+
+model CardLabel {
+  id      String @id @default(cuid())
+  cardId  String
+  labelId String
+
+  card  Card  @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  label Label @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@unique([cardId, labelId])
+  @@map("card_labels")
+}
+
+model Attachment {
+  id        String   @id @default(cuid())
+  cardId    String
+  filename  String
+  path      String
+  size      Int
+  createdAt DateTime @default(now())
+
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@map("attachments")
+}
+
+model Activity {
+  id        String   @id @default(cuid())
+  cardId    String?
+  userId    String
+  action    String
+  createdAt DateTime @default(now())
+
+  card Card? @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("activities")
+}
