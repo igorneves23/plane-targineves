@@ -1,21 +1,39 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Layers, Plus, Calendar, Clock } from 'lucide-react'
+import { Layers, Plus, Clock, X } from 'lucide-react'
 import { useBoardStore } from '../store/boardStore'
 import { Sidebar } from '../components/layout/Sidebar'
 import { Topbar } from '../components/layout/Topbar'
+import { Button } from '../components/ui/Button'
+import { Input } from '../components/ui/Input'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+
+const COLORS = ['#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6']
 
 export default function Dashboard() {
   const { boards, fetchBoards, loading, createBoard } = useBoardStore()
   const navigate = useNavigate()
+  const [showModal, setShowModal] = useState(false)
+  const [form, setForm] = useState({ title: '', description: '', color: COLORS[0] })
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     fetchBoards()
   }, [fetchBoards])
 
-  const COLORS = ['#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6']
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault()
+    setSubmitting(true)
+    try {
+      const board = await createBoard(form)
+      setShowModal(false)
+      setForm({ title: '', description: '', color: COLORS[0] })
+      navigate(`/board/${board.id}`)
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <div className="flex h-screen bg-gray-950 text-white overflow-hidden">
@@ -23,6 +41,57 @@ export default function Dashboard() {
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar title="Dashboard" />
         <main className="flex-1 overflow-y-auto p-6">
+
+          {/* Modal novo quadro */}
+          {showModal && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 w-full max-w-md">
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-lg font-semibold text-white">Novo quadro</h2>
+                  <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-white">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <form onSubmit={handleCreate} className="space-y-4">
+                  <Input
+                    label="Título"
+                    value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    placeholder="Nome do quadro"
+                    required
+                  />
+                  <Input
+                    label="Descrição (opcional)"
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    placeholder="Descreva o objetivo do quadro"
+                  />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Cor</label>
+                    <div className="flex gap-2 flex-wrap">
+                      {COLORS.map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setForm({ ...form, color: c })}
+                          className="w-7 h-7 rounded-full transition-transform hover:scale-110"
+                          style={{
+                            backgroundColor: c,
+                            outline: form.color === c ? `3px solid ${c}` : 'none',
+                            outlineOffset: '2px',
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex gap-3 justify-end pt-1">
+                    <Button type="button" variant="ghost" onClick={() => setShowModal(false)}>Cancelar</Button>
+                    <Button type="submit" loading={submitting}>Criar quadro</Button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
           {/* Header */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-white mb-1">Seus quadros</h2>
@@ -67,7 +136,7 @@ export default function Dashboard() {
 
               {/* Create new */}
               <button
-                onClick={() => {}}
+                onClick={() => setShowModal(true)}
                 className="h-36 border border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-600 hover:text-gray-400 hover:border-white/20 transition-all"
               >
                 <Plus className="w-6 h-6" />
