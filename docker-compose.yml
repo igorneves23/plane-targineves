@@ -1,14 +1,12 @@
-version: '3.9'
-
 services:
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=/api
     ports:
-      - "5173:5173"
-    environment:
-      - VITE_API_URL=http://localhost:3000
+      - "80:80"
     depends_on:
       - backend
     restart: unless-stopped
@@ -17,13 +15,11 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
     environment:
       DATABASE_URL: postgres://postgres:postgres@db:5432/plane
       JWT_SECRET: ${JWT_SECRET:-change_me_in_production}
       NODE_ENV: production
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      FRONTEND_URL: ${FRONTEND_URL:-https://plane.targineves.cloud}
       PORT: 3000
     depends_on:
       db:
@@ -39,8 +35,6 @@ services:
       POSTGRES_DB: plane
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
