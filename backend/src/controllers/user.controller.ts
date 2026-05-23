@@ -75,7 +75,12 @@ export async function updateUser(req: AuthRequest, res: Response) {
     })
     res.json(user)
   } catch (err: any) {
-    res.status(404).json({ error: 'Usuário não encontrado' })
+    console.error('[updateUser error]', err)
+    if (err?.code === 'P2025') {
+      res.status(404).json({ error: 'Usuário não encontrado' })
+    } else {
+      res.status(500).json({ error: err?.message || 'Erro ao atualizar usuário' })
+    }
   }
 }
 

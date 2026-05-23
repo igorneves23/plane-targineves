@@ -7,8 +7,8 @@ const router = Router()
 router.use(authenticate)
 router.get('/', listUsers)
 router.post('/', requireAdmin, createUser)
+router.put('/profile', updateProfile)
 router.put('/:id', requireAdmin, updateUser)
 router.delete('/:id', requireAdmin, deleteUser)
-router.put('/profile', updateProfile)
 
 export default router
