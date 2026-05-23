@@ -43,6 +43,42 @@ export async function createUser(req: AuthRequest, res: Response) {
   }
 }
 
+export async function updateUser(req: AuthRequest, res: Response) {
+  const { id } = req.params
+  const schema = z.object({
+    name: z.string().min(2).optional(),
+    email: z.string().email().optional(),
+    password: z.string().min(6).optional(),
+    role: z.enum(['ADMIN', 'LEADER', 'MEMBER']).optional(),
+  })
+  const parsed = schema.safeParse(req.body)
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.flatten() })
+    return
+  }
+  try {
+    const data: any = { ...parsed.data }
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, 10)
+    }
+    if (data.email) {
+      const exists = await prisma.user.findFirst({ where: { email: data.email, NOT: { id } } })
+      if (exists) {
+        res.status(409).json({ error: 'Email já está em uso' })
+        return
+      }
+    }
+    const user = await prisma.user.update({
+      where: { id },
+      data,
+      select: { id: true, name: true, email: true, role: true, avatar: true, createdAt: true },
+    })
+    res.json(user)
+  } catch (err: any) {
+    res.status(404).json({ error: 'Usuário não encontrado' })
+  }
+}
+
 export async function deleteUser(req: AuthRequest, res: Response) {
   const { id } = req.params
   if (id === req.userId) {
