@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
@@ -70,12 +70,6 @@ export default function Login() {
             </Button>
           </form>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
-            Não tem uma conta?{' '}
-            <Link to="/register" className="text-brand-400 hover:text-brand-300 font-medium transition-colors">
-              Cadastre-se
-            </Link>
-          </p>
         </div>
       </div>
     </div>

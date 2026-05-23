@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, LogOut, Moon, Sun, Settings, ChevronRight } from 'lucide-react'
+import { LayoutDashboard, LogOut, Moon, Sun, Users, ChevronRight } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 import { useBoardStore } from '../../store/boardStore'
 import { useTheme } from '../../context/ThemeContext'
@@ -44,6 +44,21 @@ export function Sidebar() {
           <LayoutDashboard className="w-4 h-4" />
           Dashboard
         </Link>
+
+        {user?.role === 'ADMIN' && (
+          <Link
+            to="/users"
+            className={clsx(
+              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+              location.pathname === '/users'
+                ? 'bg-brand-500/20 text-brand-400'
+                : 'text-gray-400 hover:bg-white/5 hover:text-white'
+            )}
+          >
+            <Users className="w-4 h-4" />
+            Usuários
+          </Link>
+        )}
 
         {boards.length > 0 && (
           <div className="mt-4">
