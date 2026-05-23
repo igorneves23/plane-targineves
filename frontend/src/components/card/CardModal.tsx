@@ -81,14 +81,15 @@ export function CardModal({ card: initialCard, onClose }: Props) {
   const total = card.checklist?.length ?? 0
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-10 pb-4 px-4 overflow-y-auto">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+    <div className="fixed inset-0 z-50 overflow-y-auto md:flex md:items-start md:justify-center md:pt-10 md:pb-4 md:px-4">
+      {/* Backdrop — desktop only */}
+      <div className="hidden md:block absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative w-full max-w-3xl bg-bg1 border border-bdr/10 rounded-2xl shadow-2xl animate-slide-up">
-        <div className="h-1.5 rounded-t-2xl bg-brand-500" />
+      <div className="relative w-full min-h-full md:min-h-0 md:max-w-3xl bg-bg1 md:border md:border-bdr/10 md:rounded-2xl shadow-2xl md:animate-slide-up">
+        <div className="h-1.5 md:rounded-t-2xl bg-brand-500" />
 
         {/* Header */}
-        <div className="flex items-start justify-between gap-4 px-6 pt-5 pb-3">
+        <div className="flex items-start justify-between gap-4 px-4 md:px-6 pt-5 pb-3">
           <div className="flex-1 min-w-0">
             {editingTitle ? (
               <input
@@ -122,9 +123,11 @@ export function CardModal({ card: initialCard, onClose }: Props) {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-0 divide-x divide-bdr/5">
+        {/* Body — stacks on mobile, side-by-side on desktop */}
+        <div className="flex flex-col md:grid md:grid-cols-3 md:divide-x md:divide-bdr/5">
+
           {/* Main content */}
-          <div className="col-span-2 px-6 pb-6 space-y-6">
+          <div className="md:col-span-2 px-4 md:px-6 pb-6 space-y-6">
             {/* Description */}
             <div>
               <div className="flex items-center gap-2 text-tx2 mb-2">
@@ -190,18 +193,18 @@ export function CardModal({ card: initialCard, onClose }: Props) {
             </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="px-4 py-6 space-y-5">
+          {/* Sidebar — shows below content on mobile */}
+          <div className="px-4 md:px-4 py-4 md:py-6 space-y-5 border-t border-bdr/5 md:border-t-0">
             {/* Status */}
             <div>
               <p className="text-xs font-semibold text-tx3 uppercase tracking-wider mb-2">Status</p>
-              <div className="space-y-1">
+              <div className="flex flex-wrap gap-2 md:block md:space-y-1">
                 {STATUSES.map((s) => (
                   <button
                     key={s.value}
                     onClick={() => patch({ status: s.value } as Partial<Card>)}
                     className={clsx(
-                      'w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+                      'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors md:w-full md:text-left',
                       card.status === s.value ? 'bg-brand-500/20 text-brand-500' : 'text-tx2 hover:bg-bdr/5 hover:text-tx1'
                     )}
                   >
@@ -217,13 +220,13 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                 <Flag className="w-3 h-3 text-tx3" />
                 <p className="text-xs font-semibold text-tx3 uppercase tracking-wider">Prioridade</p>
               </div>
-              <div className="space-y-1">
+              <div className="flex flex-wrap gap-2 md:block md:space-y-1">
                 {PRIORITIES.map((p) => (
                   <button
                     key={p.value}
                     onClick={() => patch({ priority: p.value } as Partial<Card>)}
                     className={clsx(
-                      'w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-2',
+                      'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-2 md:w-full md:text-left',
                       card.priority === p.value ? 'bg-bdr/10 text-tx1' : 'text-tx2 hover:bg-bdr/5 hover:text-tx1'
                     )}
                   >
