@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeProvider } from './context/ThemeContext'
+import { SidebarProvider } from './context/SidebarContext'
 import { useAuthStore } from './store/authStore'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
@@ -21,6 +22,7 @@ export default function App() {
 
   return (
     <ThemeProvider>
+      <SidebarProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
@@ -31,6 +33,7 @@ export default function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </BrowserRouter>
+      </SidebarProvider>
     </ThemeProvider>
   )
 }

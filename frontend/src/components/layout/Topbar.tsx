@@ -1,7 +1,8 @@
-import { Plus } from 'lucide-react'
+import { Menu, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBoardStore } from '../../store/boardStore'
+import { useSidebar } from '../../context/SidebarContext'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Modal } from '../ui/Modal'
@@ -17,6 +18,7 @@ export function Topbar({ title }: Props) {
   const [color, setColor] = useState(COLORS[0])
   const [loading, setLoading] = useState(false)
   const { createBoard } = useBoardStore()
+  const { setOpen: setSidebarOpen } = useSidebar()
   const navigate = useNavigate()
 
   async function handleCreate(e: React.FormEvent) {
@@ -36,11 +38,21 @@ export function Topbar({ title }: Props) {
 
   return (
     <>
-      <header className="h-14 border-b border-bdr/5 flex items-center justify-between px-6 bg-bg1/80 backdrop-blur-sm sticky top-0 z-10">
-        <h1 className="font-semibold text-tx1 text-lg">{title || 'Plane'}</h1>
+      <header className="h-14 border-b border-bdr/5 flex items-center justify-between px-4 md:px-6 bg-bg1/80 backdrop-blur-sm sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          {/* Hamburger — mobile only */}
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="md:hidden p-1.5 rounded-lg text-tx2 hover:bg-bdr/5 hover:text-tx1 transition-colors"
+            aria-label="Abrir menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <h1 className="font-semibold text-tx1 text-lg">{title || 'Plane'}</h1>
+        </div>
         <Button onClick={() => setOpen(true)} size="sm">
           <Plus className="w-4 h-4" />
-          Novo quadro
+          <span className="hidden sm:inline">Novo quadro</span>
         </Button>
       </header>
 
