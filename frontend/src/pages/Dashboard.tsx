@@ -14,6 +14,66 @@ const COLORS = ['#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'
 
 const emptyForm = { title: '', description: '', color: COLORS[0] }
 
+// ── Definido FORA do Dashboard para evitar remontagem a cada render ──────────
+interface BoardFormModalProps {
+  modalTitle: string
+  form: { title: string; description: string; color: string }
+  onFormChange: (f: { title: string; description: string; color: string }) => void
+  onSubmit: (e: React.FormEvent) => void
+  onClose: () => void
+  submitting: boolean
+  isEditing: boolean
+}
+
+function BoardFormModal({ modalTitle, form, onFormChange, onSubmit, onClose, submitting, isEditing }: BoardFormModalProps) {
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-bg1 border border-bdr/10 rounded-2xl p-6 w-full max-w-md">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-lg font-semibold text-tx1">{modalTitle}</h2>
+          <button onClick={onClose} className="text-tx3 hover:text-tx1">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <form onSubmit={onSubmit} className="space-y-4">
+          <Input
+            label="Título"
+            value={form.title}
+            onChange={(e) => onFormChange({ ...form, title: e.target.value })}
+            placeholder="Nome do quadro"
+            required
+          />
+          <Input
+            label="Descrição (opcional)"
+            value={form.description}
+            onChange={(e) => onFormChange({ ...form, description: e.target.value })}
+            placeholder="Descreva o objetivo do quadro"
+          />
+          <div>
+            <label className="block text-sm font-medium text-tx2 mb-2">Cor</label>
+            <div className="flex gap-2 flex-wrap">
+              {COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => onFormChange({ ...form, color: c })}
+                  className="w-7 h-7 rounded-full transition-transform hover:scale-110"
+                  style={{ backgroundColor: c, outline: form.color === c ? `3px solid ${c}` : 'none', outlineOffset: '2px' }}
+                />
+              ))}
+            </div>
+          </div>
+          <div className="flex gap-3 justify-end pt-1">
+            <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
+            <Button type="submit" loading={submitting}>{isEditing ? 'Salvar' : 'Criar quadro'}</Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function Dashboard() {
   const { boards, fetchBoards, loading, createBoard, updateBoard, deleteBoard } = useBoardStore()
   const navigate = useNavigate()
@@ -61,50 +121,6 @@ export default function Dashboard() {
     await deleteBoard(board.id)
   }
 
-  const BoardModal = ({ title, onSubmit, onClose }: { title: string; onSubmit: (e: React.FormEvent) => void; onClose: () => void }) => (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-bg1 border border-bdr/10 rounded-2xl p-6 w-full max-w-md">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-semibold text-tx1">{title}</h2>
-          <button onClick={onClose} className="text-tx3 hover:text-tx1"><X className="w-5 h-5" /></button>
-        </div>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <Input
-            label="Título"
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            placeholder="Nome do quadro"
-            required
-          />
-          <Input
-            label="Descrição (opcional)"
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            placeholder="Descreva o objetivo do quadro"
-          />
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Cor</label>
-            <div className="flex gap-2 flex-wrap">
-              {COLORS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setForm({ ...form, color: c })}
-                  className="w-7 h-7 rounded-full transition-transform hover:scale-110"
-                  style={{ backgroundColor: c, outline: form.color === c ? `3px solid ${c}` : 'none', outlineOffset: '2px' }}
-                />
-              ))}
-            </div>
-          </div>
-          <div className="flex gap-3 justify-end pt-1">
-            <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
-            <Button type="submit" loading={submitting}>{editingBoard ? 'Salvar' : 'Criar quadro'}</Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-
   return (
     <div className="flex h-screen bg-bg0 text-tx1 overflow-hidden">
       <Sidebar />
@@ -113,10 +129,26 @@ export default function Dashboard() {
         <main className="flex-1 overflow-y-auto p-6">
 
           {showCreate && (
-            <BoardModal title="Novo quadro" onSubmit={handleCreate} onClose={() => { setShowCreate(false); setForm(emptyForm) }} />
+            <BoardFormModal
+              modalTitle="Novo quadro"
+              form={form}
+              onFormChange={setForm}
+              onSubmit={handleCreate}
+              onClose={() => { setShowCreate(false); setForm(emptyForm) }}
+              submitting={submitting}
+              isEditing={false}
+            />
           )}
           {editingBoard && (
-            <BoardModal title="Editar quadro" onSubmit={handleUpdate} onClose={() => setEditingBoard(null)} />
+            <BoardFormModal
+              modalTitle="Editar quadro"
+              form={form}
+              onFormChange={setForm}
+              onSubmit={handleUpdate}
+              onClose={() => setEditingBoard(null)}
+              submitting={submitting}
+              isEditing={true}
+            />
           )}
 
           <div className="mb-8">
