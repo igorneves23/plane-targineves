@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Pencil } from 'lucide-react'
 import api from '../../services/api'
 import { Card, ChecklistItem } from '../../types'
 import clsx from 'clsx'
@@ -9,6 +9,8 @@ interface Props { card: Card; onUpdate: (card: Card) => void }
 export function ChecklistSection({ card, onUpdate }: Props) {
   const [adding, setAdding] = useState(false)
   const [newItem, setNewItem] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editingValue, setEditingValue] = useState('')
 
   async function addItem(e: React.FormEvent) {
     e.preventDefault()
@@ -29,25 +31,83 @@ export function ChecklistSection({ card, onUpdate }: Props) {
     onUpdate({ ...card, checklist: card.checklist.filter((i) => i.id !== id) })
   }
 
+  function startEdit(item: ChecklistItem) {
+    setEditingId(item.id)
+    setEditingValue(item.title)
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+    setEditingValue('')
+  }
+
+  async function saveEdit(item: ChecklistItem) {
+    const trimmed = editingValue.trim()
+    if (!trimmed || trimmed === item.title) {
+      cancelEdit()
+      return
+    }
+    const { data } = await api.put(`/checklist/${item.id}`, { title: trimmed })
+    onUpdate({ ...card, checklist: card.checklist.map((i) => (i.id === item.id ? data : i)) })
+    cancelEdit()
+  }
+
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       {card.checklist?.map((item) => (
-        <div key={item.id} className="flex items-center gap-3 group/item">
+        <div key={item.id} className="flex items-center gap-3 group/item py-0.5">
           <input
             type="checkbox"
             checked={item.completed}
             onChange={() => toggleItem(item)}
-            className="accent-brand-500 w-4 h-4 shrink-0 cursor-pointer"
+            className="accent-brand-500 w-4 h-4 shrink-0 cursor-pointer mt-0.5"
           />
-          <span className={clsx('text-sm flex-1', item.completed ? 'line-through text-tx3' : 'text-tx1')}>
-            {item.title}
-          </span>
-          <button
-            onClick={() => deleteItem(item.id)}
-            className="opacity-0 group-hover/item:opacity-100 p-1 rounded hover:bg-red-500/10 text-tx3 hover:text-red-400 transition-all"
-          >
-            <Trash2 className="w-3 h-3" />
-          </button>
+
+          {editingId === item.id ? (
+            /* ── Modo edição ── */
+            <input
+              value={editingValue}
+              onChange={(e) => setEditingValue(e.target.value)}
+              autoFocus
+              onBlur={() => saveEdit(item)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') { e.preventDefault(); saveEdit(item) }
+                if (e.key === 'Escape') cancelEdit()
+              }}
+              className="flex-1 bg-bg2 border border-brand-500/60 rounded-md px-2 py-0.5 text-sm text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            />
+          ) : (
+            /* ── Modo visualização ── */
+            <span
+              onDoubleClick={() => !item.completed && startEdit(item)}
+              className={clsx(
+                'text-sm flex-1 leading-snug',
+                item.completed ? 'line-through text-tx3' : 'text-tx1'
+              )}
+            >
+              {item.title}
+            </span>
+          )}
+
+          {/* Ações (aparecem no hover) */}
+          <div className="flex items-center gap-0.5 opacity-0 group-hover/item:opacity-100 transition-all shrink-0">
+            {!item.completed && editingId !== item.id && (
+              <button
+                onClick={() => startEdit(item)}
+                className="p-1 rounded hover:bg-bdr/10 text-tx3 hover:text-tx1 transition-colors"
+                title="Editar item"
+              >
+                <Pencil className="w-3 h-3" />
+              </button>
+            )}
+            <button
+              onClick={() => deleteItem(item.id)}
+              className="p-1 rounded hover:bg-red-500/10 text-tx3 hover:text-red-400 transition-colors"
+              title="Excluir item"
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
+          </div>
         </div>
       ))}
 
