@@ -50,12 +50,17 @@ export function CardModal({ card: initialCard, onClose }: Props) {
     cardService.get(card.id).then((c) => setCard(c))
   }, [card.id])
 
+  // Atualiza o card local E o store do board (mantém CardItem sincronizado)
+  function syncCard(updated: Card) {
+    setCard(updated)
+    updateCardInStore(updated)
+  }
+
   async function patch(data: Partial<Card>) {
     setSaving(true)
     try {
       const updated = await cardService.update(card.id, data)
-      setCard(updated)
-      updateCardInStore(updated)
+      syncCard(updated)
     } finally {
       setSaving(false)
     }
@@ -185,7 +190,7 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                   <div className="h-full bg-brand-500 rounded-full transition-all" style={{ width: `${(done / total) * 100}%` }} />
                 </div>
               )}
-              <ChecklistSection card={card} onUpdate={setCard} />
+              <ChecklistSection card={card} onUpdate={syncCard} />
             </div>
 
             {/* Comments */}
@@ -194,7 +199,7 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                 <MessageSquare className="w-4 h-4" />
                 <span className="text-sm font-medium">Comentários</span>
               </div>
-              <CommentsSection card={card} onUpdate={setCard} />
+              <CommentsSection card={card} onUpdate={syncCard} />
             </div>
           </div>
 
@@ -262,7 +267,7 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                 <Users className="w-3 h-3 text-tx3" />
                 <p className="text-xs font-semibold text-tx3 uppercase tracking-wider">Responsáveis</p>
               </div>
-              <MembersSection card={card} onUpdate={setCard} />
+              <MembersSection card={card} onUpdate={syncCard} />
             </div>
 
             {/* Labels */}
@@ -271,7 +276,7 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                 <Tag className="w-3 h-3 text-tx3" />
                 <p className="text-xs font-semibold text-tx3 uppercase tracking-wider">Etiquetas</p>
               </div>
-              <LabelsSection card={card} onUpdate={setCard} />
+              <LabelsSection card={card} onUpdate={syncCard} />
             </div>
 
             {/* Recurrence */}
