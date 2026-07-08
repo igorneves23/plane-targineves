@@ -93,10 +93,11 @@ model Card {
   dueDate       DateTime?
   status        CardStatus     @default(TODO)
   position      Int            @default(0)
-  recurring     Boolean        @default(false)
-  recurringType RecurringType?
-  nextExecution DateTime?
-  createdById   String
+  recurring       Boolean        @default(false)
+  recurringType   RecurringType?
+  nextExecution   DateTime?
+  durationMinutes Int?           @default(60)
+  createdById     String
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 

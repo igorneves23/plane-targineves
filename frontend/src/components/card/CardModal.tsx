@@ -58,6 +58,7 @@ export function CardModal({ card: initialCard, onClose }: Props) {
 
   const [vencimentoValue, setVencimentoValue] = useState(card.dueDate ? toLocalInput(card.dueDate) : '')
   const [horarioValue, setHorarioValue] = useState(card.nextExecution ? toLocalTime(card.nextExecution) : '')
+  const [durationValue, setDurationValue] = useState(String(card.durationMinutes ?? 60))
 
   useEffect(() => {
     cardService.get(card.id).then((c) => setCard(c))
@@ -72,6 +73,10 @@ export function CardModal({ card: initialCard, onClose }: Props) {
   useEffect(() => {
     setHorarioValue(card.nextExecution ? toLocalTime(card.nextExecution) : '')
   }, [card.nextExecution])
+
+  useEffect(() => {
+    setDurationValue(String(card.durationMinutes ?? 60))
+  }, [card.durationMinutes])
 
   // Atualiza o card local E o store do board (mantém CardItem sincronizado)
   function syncCard(updated: Card) {
@@ -308,6 +313,21 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                 }}
                 className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
+              <div className="mt-2">
+                <label className="text-xs text-tx3 block mb-1">Duração (minutos)</label>
+                <input
+                  type="number"
+                  min={5}
+                  step={5}
+                  value={durationValue}
+                  onChange={(e) => {
+                    setDurationValue(e.target.value)
+                    const n = Number(e.target.value)
+                    if (e.target.value && n >= 5) patch({ durationMinutes: n } as Partial<Card>)
+                  }}
+                  className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                />
+              </div>
             </div>
 
             {/* Members */}

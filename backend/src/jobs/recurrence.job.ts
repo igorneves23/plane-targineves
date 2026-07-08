@@ -51,6 +51,7 @@ export function startRecurrenceJob() {
           recurring: card.recurring,
           recurringType: card.recurringType,
           dueDate: card.dueDate,
+          durationMinutes: card.durationMinutes,
           nextExecution: nextDate(card.recurringType!, now),
         },
       })

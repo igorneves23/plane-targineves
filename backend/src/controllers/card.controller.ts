@@ -13,6 +13,7 @@ const cardSchema = z.object({
   recurring: z.boolean().optional(),
   recurringType: z.enum(['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY']).optional().nullable(),
   nextExecution: z.string().datetime().optional().nullable(),
+  durationMinutes: z.number().int().min(5).max(24 * 60).optional().nullable(),
 })
 
 const cardInclude = {

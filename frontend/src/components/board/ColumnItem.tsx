@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Plus, MoreHorizontal, Trash2, Pencil, ChevronsLeftRight } from 'lucide-react'
+import { Plus, MoreHorizontal, Trash2, Pencil, ChevronsLeftRight, Clock, LayoutList } from 'lucide-react'
 import { Column, Card } from '../../types'
 import { CardItem } from './CardItem'
+import { DayTimeline, hasTimelineSlot } from './DayTimeline'
 import { useBoardStore } from '../../store/boardStore'
 import clsx from 'clsx'
 
@@ -19,6 +20,7 @@ export function ColumnItem({ column, onCardClick }: Props) {
   const [colTitle, setColTitle] = useState(column.title)
   const [collapsed, setCollapsed] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [viewMode, setViewMode] = useState<'list' | 'timeline'>('list')
   const { createCard, updateColumn, deleteColumn } = useBoardStore()
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -98,6 +100,14 @@ export function ColumnItem({ column, onCardClick }: Props) {
             </span>
 
             <button
+              onClick={() => setViewMode(viewMode === 'list' ? 'timeline' : 'list')}
+              className="p-1 text-tx3 hover:text-tx1 transition-colors shrink-0"
+              title={viewMode === 'list' ? 'Ver linha do tempo' : 'Ver lista'}
+            >
+              {viewMode === 'list' ? <Clock className="w-3.5 h-3.5" /> : <LayoutList className="w-3.5 h-3.5" />}
+            </button>
+
+            <button
               onClick={() => setCollapsed(true)}
               className="p-1 text-tx3 hover:text-tx1 transition-colors shrink-0"
             >
@@ -138,13 +148,32 @@ export function ColumnItem({ column, onCardClick }: Props) {
       {/* Cards */}
       {!collapsed && (
         <div className="flex-1 flex flex-col bg-bg1/40 border border-bdr/5 border-t-0 rounded-b-2xl">
-          <div className="flex-1 overflow-y-auto p-2 space-y-2 min-h-[40px]">
-            <SortableContext items={column.cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
-              {column.cards.map((card) => (
-                <CardItem key={card.id} card={card} onClick={() => onCardClick(card)} />
-              ))}
-            </SortableContext>
-          </div>
+          {viewMode === 'timeline' ? (
+            <div className="flex-1 overflow-y-auto p-2 min-h-[40px]">
+              <DayTimeline cards={column.cards.filter(hasTimelineSlot)} onCardClick={onCardClick} />
+              {column.cards.some((c) => !hasTimelineSlot(c)) && (
+                <div className="mt-3 pt-3 border-t border-bdr/10 space-y-2">
+                  <p className="text-[10px] text-tx3 uppercase tracking-wider px-1">Sem horário definido</p>
+                  <SortableContext
+                    items={column.cards.filter((c) => !hasTimelineSlot(c)).map((c) => c.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {column.cards.filter((c) => !hasTimelineSlot(c)).map((card) => (
+                      <CardItem key={card.id} card={card} onClick={() => onCardClick(card)} />
+                    ))}
+                  </SortableContext>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex-1 overflow-y-auto p-2 space-y-2 min-h-[40px]">
+              <SortableContext items={column.cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+                {column.cards.map((card) => (
+                  <CardItem key={card.id} card={card} onClick={() => onCardClick(card)} />
+                ))}
+              </SortableContext>
+            </div>
+          )}
 
           <div className="p-2 pt-0">
             {adding ? (

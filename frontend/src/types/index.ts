@@ -85,6 +85,7 @@ export interface Card {
   recurring: boolean
   recurringType?: RecurringType | null
   nextExecution?: string | null
+  durationMinutes?: number | null
   createdById: string
   createdAt: string
   updatedAt: string

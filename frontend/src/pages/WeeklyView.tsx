@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { CheckSquare, Clock, MessageSquare, RefreshCw } from 'lucide-react'
+import { CheckSquare, Clock, MessageSquare, RefreshCw, LayoutList } from 'lucide-react'
 import { Sidebar } from '../components/layout/Sidebar'
 import { Topbar } from '../components/layout/Topbar'
 import { Avatar } from '../components/ui/Avatar'
 import { CardModal } from '../components/card/CardModal'
+import { DayTimeline } from '../components/board/DayTimeline'
 import { cardService } from '../services/card.service'
 import { WeeklyCard } from '../types'
 import { format } from 'date-fns'
@@ -30,6 +31,7 @@ export default function WeeklyView() {
   const [cards, setCards] = useState<WeeklyCard[]>([])
   const [loading, setLoading] = useState(true)
   const [activeCard, setActiveCard] = useState<WeeklyCard | null>(null)
+  const [viewMode, setViewMode] = useState<'timeline' | 'list'>('timeline')
 
   useEffect(() => {
     load()
@@ -56,6 +58,15 @@ export default function WeeklyView() {
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar title="Visão Semanal" />
         <main className="flex-1 overflow-x-auto overflow-y-hidden p-6">
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={() => setViewMode(viewMode === 'timeline' ? 'list' : 'timeline')}
+              className="flex items-center gap-1.5 text-xs text-tx3 hover:text-tx1 bg-bg1 border border-bdr/10 rounded-lg px-3 py-1.5 transition-colors"
+            >
+              {viewMode === 'timeline' ? <LayoutList className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+              {viewMode === 'timeline' ? 'Ver como lista' : 'Ver linha do tempo'}
+            </button>
+          </div>
           {loading ? (
             <div className="flex gap-4 h-full">
               {[...Array(7)].map((_, i) => (
@@ -93,7 +104,10 @@ export default function WeeklyView() {
                       {dayCards.length === 0 && (
                         <p className="text-xs text-tx3 text-center py-6">Nada programado</p>
                       )}
-                      {dayCards.map((card) => {
+                      {viewMode === 'timeline' && dayCards.length > 0 && (
+                        <DayTimeline cards={dayCards} onCardClick={(c) => setActiveCard(c as WeeklyCard)} />
+                      )}
+                      {viewMode === 'list' && dayCards.map((card) => {
                         const doneItems = card.checklist?.filter((i) => i.completed).length ?? 0
                         const totalItems = card._count?.checklist ?? card.checklist?.length ?? 0
                         const commentCount = card._count?.comments ?? 0
