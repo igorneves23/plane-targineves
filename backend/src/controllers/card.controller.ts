@@ -150,6 +150,40 @@ export async function removeMember(req: AuthRequest, res: Response) {
   res.status(204).send()
 }
 
+export async function listWeeklyCards(_req: AuthRequest, res: Response) {
+  const cards = await prisma.card.findMany({
+    where: {
+      OR: [
+        { recurring: true, nextExecution: { not: null } },
+        { dueDate: { not: null } },
+      ],
+    },
+    include: {
+      members: { include: { user: { select: { id: true, name: true, avatar: true } } } },
+      labels: { include: { label: true } },
+      column: { include: { board: { select: { id: true, title: true, color: true } } } },
+      _count: { select: { checklist: true, comments: true } },
+    },
+    orderBy: { updatedAt: 'desc' },
+  })
+
+  const result = cards
+    .map((card) => {
+      const referenceDate = card.recurring ? card.nextExecution ?? card.dueDate : card.dueDate
+      if (!referenceDate) return null
+      const { column, ...rest } = card
+      return {
+        ...rest,
+        referenceDate,
+        weekday: referenceDate.getDay(),
+        board: column.board,
+      }
+    })
+    .filter((c): c is NonNullable<typeof c> => c !== null)
+
+  res.json(result)
+}
+
 export async function getActivities(req: AuthRequest, res: Response) {
   const activities = await prisma.activity.findMany({
     where: { cardId: req.params.id },

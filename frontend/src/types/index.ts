@@ -106,6 +106,12 @@ export interface Column {
   cards: Card[]
 }
 
+export interface WeeklyCard extends Card {
+  referenceDate: string
+  weekday: number
+  board: Pick<Board, 'id' | 'title' | 'color'>
+}
+
 export interface Board {
   id: string
   title: string
