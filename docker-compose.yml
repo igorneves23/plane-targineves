@@ -19,6 +19,11 @@ services:
       NODE_ENV: production
       FRONTEND_URL: ${FRONTEND_URL:-https://plane.targineves.cloud}
       PORT: 3000
+      EMAIL_HOST: ${EMAIL_HOST:-}
+      EMAIL_PORT: ${EMAIL_PORT:-587}
+      EMAIL_USER: ${EMAIL_USER:-comunicaris@ipctba.org.br}
+      EMAIL_PASS: ${EMAIL_PASS:-}
+      EMAIL_FROM: ${EMAIL_FROM:-Plane <comunicaris@ipctba.org.br>}
     depends_on:
       db:
         condition: service_healthy

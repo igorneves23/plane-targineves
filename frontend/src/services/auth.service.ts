@@ -11,4 +11,10 @@ export const authService = {
     api.post<AuthResponse>('/auth/register', { name, email, password }).then((r) => r.data),
 
   me: () => api.get<User>('/auth/me').then((r) => r.data),
+
+  forgotPassword: (email: string) =>
+    api.post<{ message: string }>('/auth/forgot-password', { email }).then((r) => r.data),
+
+  resetPassword: (token: string, password: string) =>
+    api.post<{ message: string }>('/auth/reset-password', { token, password }).then((r) => r.data),
 }

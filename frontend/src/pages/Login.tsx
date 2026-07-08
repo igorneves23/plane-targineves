@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
@@ -49,14 +49,22 @@ export default function Login() {
               placeholder="seu@email.com"
               required
             />
-            <Input
-              label="Senha"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-            />
+            <div>
+              <Input
+                label="Senha"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+              />
+              <Link
+                to="/forgot-password"
+                className="inline-block mt-1.5 text-xs text-brand-400 hover:underline"
+              >
+                Esqueceu sua senha?
+              </Link>
+            </div>
 
             {error && (
               <div className="px-3 py-2 bg-red-500/10 border border-red-500/20 rounded-lg">
