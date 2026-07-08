@@ -139,3 +139,58 @@ export async function sendCardReminderEmail(
     html: cardReminderEmailHtml(name, cardTitle, boardTitle, recurringType, boardUrl),
   })
 }
+
+export function urgentReminderEmailHtml(
+  name: string,
+  cardTitle: string,
+  boardTitle: string,
+  timeLabel: string,
+  scheduledAt: string,
+  boardUrl: string,
+): string {
+  return `
+    <div style="font-family:sans-serif;max-width:520px;margin:auto;padding:0 16px">
+      ${emailHeader()}
+      <h2 style="color:#dc2626;margin:0 0 4px">Urgente: faltam ${timeLabel} 🚨</h2>
+      <p style="color:#374151">Olá, <strong>${escapeHtml(name)}</strong>!</p>
+      <p style="color:#374151">A tarefa <strong>urgente</strong> abaixo, no quadro <strong>${escapeHtml(boardTitle)}</strong>, está programada para <strong>${escapeHtml(scheduledAt)}</strong> — faltam ${timeLabel}:</p>
+
+      <div style="background:#fef2f2;border-left:4px solid #ef4444;border-radius:8px;padding:16px;margin:16px 0">
+        <p style="margin:0;color:#374151;font-weight:bold">${escapeHtml(cardTitle)}</p>
+      </div>
+
+      <a href="${boardUrl}"
+         style="display:inline-block;background:#ef4444;color:#fff;font-weight:bold;text-decoration:none;
+                padding:12px 28px;border-radius:12px;margin:0 0 16px">
+        Ver no quadro →
+      </a>
+
+      <p style="color:#9ca3af;font-size:13px">
+        Lembrete automático para tarefas de prioridade urgente.
+      </p>
+      ${emailFooter()}
+    </div>
+  `
+}
+
+export async function sendUrgentReminderEmail(
+  to: string,
+  name: string,
+  cardTitle: string,
+  boardTitle: string,
+  timeLabel: string,
+  scheduledAt: string,
+  boardUrl: string,
+) {
+  if (!process.env.EMAIL_HOST) {
+    console.warn('[mailer] EMAIL_HOST não configurado — lembrete urgente não enviado para', to)
+    return
+  }
+
+  await transporter.sendMail({
+    from: process.env.EMAIL_FROM || 'Plane <comunicaris@ipctba.org.br>',
+    to,
+    subject: `🚨 Urgente (faltam ${timeLabel}): ${cardTitle}`,
+    html: urgentReminderEmailHtml(name, cardTitle, boardTitle, timeLabel, scheduledAt, boardUrl),
+  })
+}

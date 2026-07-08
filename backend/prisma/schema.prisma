@@ -99,6 +99,11 @@ model Card {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
+  // Controle de envio dos lembretes de prioridade urgente (evita duplicar
+  // o e-mail — guarda o horário de referência para o qual já foi enviado)
+  urgentHourNotifiedFor   DateTime?
+  urgentTenMinNotifiedFor DateTime?
+
   column      Column          @relation(fields: [columnId], references: [id], onDelete: Cascade)
   createdBy   User            @relation("CardCreator", fields: [createdById], references: [id])
   members     CardMember[]

@@ -15,6 +15,7 @@ import labelRoutes from './routes/label.routes'
 import attachmentRoutes from './routes/attachment.routes'
 import userRoutes from './routes/user.routes'
 import { startRecurrenceJob } from './jobs/recurrence.job'
+import { startUrgentReminderJob } from './jobs/urgentReminder.job'
 
 dotenv.config()
 
@@ -43,5 +44,6 @@ app.use('/users', userRoutes)
 app.get('/health', (_req, res) => res.json({ status: 'ok', ts: new Date() }))
 
 startRecurrenceJob()
+startUrgentReminderJob()
 
 app.listen(PORT, () => console.log(`[Server] Running on port ${PORT}`))
