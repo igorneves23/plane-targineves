@@ -1,12 +1,32 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 
-interface SidebarCtx { open: boolean; setOpen: (v: boolean) => void }
+interface SidebarCtx {
+  open: boolean
+  setOpen: (v: boolean) => void
+  collapsed: boolean
+  setCollapsed: (v: boolean) => void
+}
 
-const SidebarContext = createContext<SidebarCtx>({ open: false, setOpen: () => {} })
+const SidebarContext = createContext<SidebarCtx>({
+  open: false,
+  setOpen: () => {},
+  collapsed: false,
+  setCollapsed: () => {},
+})
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
-  return <SidebarContext.Provider value={{ open, setOpen }}>{children}</SidebarContext.Provider>
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem('sidebar-collapsed') === 'true')
+
+  useEffect(() => {
+    localStorage.setItem('sidebar-collapsed', String(collapsed))
+  }, [collapsed])
+
+  return (
+    <SidebarContext.Provider value={{ open, setOpen, collapsed, setCollapsed }}>
+      {children}
+    </SidebarContext.Provider>
+  )
 }
 
 export const useSidebar = () => useContext(SidebarContext)
