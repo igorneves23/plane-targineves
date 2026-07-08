@@ -1,5 +1,6 @@
 import cron from 'node-cron'
 import { prisma } from '../lib/prisma'
+import { sendCardReminderEmail } from '../lib/mailer'
 
 function nextDate(type: string, from: Date): Date {
   const d = new Date(from)
@@ -19,11 +20,15 @@ export function startRecurrenceJob() {
         nextExecution: { lte: now },
         recurringType: { not: null },
       },
+      include: {
+        members: { include: { user: { select: { id: true, name: true, email: true } } } },
+        column: { include: { board: { select: { id: true, title: true } } } },
+      },
     })
 
     for (const card of due) {
       const count = await prisma.card.count({ where: { columnId: card.columnId } })
-      await prisma.card.create({
+      const newCard = await prisma.card.create({
         data: {
           columnId: card.columnId,
           title: card.title,
@@ -38,10 +43,32 @@ export function startRecurrenceJob() {
         },
       })
 
+      if (card.members.length > 0) {
+        await prisma.cardMember.createMany({
+          data: card.members.map((m) => ({ cardId: newCard.id, userId: m.userId })),
+        })
+      }
+
       await prisma.card.update({
         where: { id: card.id },
         data: { nextExecution: nextDate(card.recurringType!, now) },
       })
+
+      const boardUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/board/${card.column.board.id}`
+      for (const member of card.members) {
+        try {
+          await sendCardReminderEmail(
+            member.user.email,
+            member.user.name,
+            card.title,
+            card.column.board.title,
+            card.recurringType!,
+            boardUrl
+          )
+        } catch (err) {
+          console.error(`[Recurrence] erro ao enviar lembrete para ${member.user.email}`, err)
+        }
+      }
     }
 
     if (due.length > 0) {

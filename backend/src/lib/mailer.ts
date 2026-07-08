@@ -78,3 +78,64 @@ export async function sendPasswordResetEmail(to: string, name: string, resetUrl:
     html: resetPasswordEmailHtml(name, resetUrl),
   })
 }
+
+const RECURRENCE_LABEL: Record<string, string> = {
+  DAILY: 'diária',
+  WEEKLY: 'semanal',
+  MONTHLY: 'mensal',
+  YEARLY: 'anual',
+}
+
+export function cardReminderEmailHtml(
+  name: string,
+  cardTitle: string,
+  boardTitle: string,
+  recurringType: string,
+  boardUrl: string,
+): string {
+  const frequency = RECURRENCE_LABEL[recurringType] ?? recurringType.toLowerCase()
+  return `
+    <div style="font-family:sans-serif;max-width:520px;margin:auto;padding:0 16px">
+      ${emailHeader()}
+      <h2 style="color:#4f46e5;margin:0 0 4px">Lembrete de obrigação 📌</h2>
+      <p style="color:#374151">Olá, <strong>${escapeHtml(name)}</strong>!</p>
+      <p style="color:#374151">Você é responsável pela tarefa recorrente <strong>${frequency}</strong> abaixo no quadro <strong>${escapeHtml(boardTitle)}</strong>:</p>
+
+      <div style="background:#f5f3ff;border-left:4px solid #6366f1;border-radius:8px;padding:16px;margin:16px 0">
+        <p style="margin:0;color:#374151;font-weight:bold">${escapeHtml(cardTitle)}</p>
+      </div>
+
+      <a href="${boardUrl}"
+         style="display:inline-block;background:#6366f1;color:#fff;font-weight:bold;text-decoration:none;
+                padding:12px 28px;border-radius:12px;margin:0 0 16px">
+        Ver no quadro →
+      </a>
+
+      <p style="color:#9ca3af;font-size:13px">
+        Este lembrete é enviado automaticamente a cada renovação da tarefa.
+      </p>
+      ${emailFooter()}
+    </div>
+  `
+}
+
+export async function sendCardReminderEmail(
+  to: string,
+  name: string,
+  cardTitle: string,
+  boardTitle: string,
+  recurringType: string,
+  boardUrl: string,
+) {
+  if (!process.env.EMAIL_HOST) {
+    console.warn('[mailer] EMAIL_HOST não configurado — lembrete de tarefa não enviado para', to)
+    return
+  }
+
+  await transporter.sendMail({
+    from: process.env.EMAIL_FROM || 'Plane <comunicaris@ipctba.org.br>',
+    to,
+    subject: `Lembrete: ${cardTitle}`,
+    html: cardReminderEmailHtml(name, cardTitle, boardTitle, recurringType, boardUrl),
+  })
+}
