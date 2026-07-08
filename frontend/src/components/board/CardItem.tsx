@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { CheckSquare, Clock, RefreshCw, MessageSquare } from 'lucide-react'
+import { CheckSquare, CheckCircle2, Clock, RefreshCw, MessageSquare } from 'lucide-react'
 import { Card } from '../../types'
 import { Avatar } from '../ui/Avatar'
 import { format, isPast, isToday, isTomorrow } from 'date-fns'
@@ -32,6 +32,7 @@ export function CardItem({ card, onClick }: Props) {
   const doneItems = card.checklist?.filter((i) => i.completed).length ?? 0
   const totalItems = card._count?.checklist ?? card.checklist?.length ?? 0
   const commentCount = card._count?.comments ?? 0
+  const isDone = card.status === 'DONE'
   const isOverdue = card.dueDate && isPast(new Date(card.dueDate)) && card.status !== 'DONE'
 
   return (
@@ -44,7 +45,8 @@ export function CardItem({ card, onClick }: Props) {
       className={clsx(
         'bg-bg1 border border-bdr/[0.06] rounded-xl p-3 cursor-pointer',
         'hover:border-bdr/20 hover:shadow-sm transition-all select-none',
-        isDragging && 'opacity-40 ring-2 ring-brand-500/60 shadow-xl'
+        isDragging && 'opacity-40 ring-2 ring-brand-500/60 shadow-xl',
+        isDone && 'border-l-4 border-l-green-500/70 bg-green-500/[0.03]'
       )}
     >
       {/* Etiquetas coloridas */}
@@ -57,7 +59,13 @@ export function CardItem({ card, onClick }: Props) {
       )}
 
       {/* Título */}
-      <p className="text-sm font-medium text-tx1 leading-snug mb-3">{card.title}</p>
+      <p className={clsx(
+        'text-sm font-medium leading-snug mb-3 flex items-start gap-1.5',
+        isDone ? 'text-tx3 line-through' : 'text-tx1'
+      )}>
+        {isDone && <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />}
+        {card.title}
+      </p>
 
       {/* Badges e membros */}
       <div className="flex items-center justify-between gap-2">
