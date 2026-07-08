@@ -41,6 +41,8 @@ export interface ChecklistItem {
   completedById?: string | null
   completedAt?: string | null
   completedBy?: { id: string; name: string } | null
+  assigneeId?: string | null
+  assignee?: { id: string; name: string; avatar?: string | null } | null
   createdAt: string
 }
 

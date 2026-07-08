@@ -51,6 +51,7 @@ model User {
   activities          Activity[]
   createdCards        Card[]          @relation("CardCreator")
   completedChecklists ChecklistItem[] @relation("ChecklistCompletedBy")
+  assignedChecklists  ChecklistItem[] @relation("ChecklistAssignee")
 
   @@map("users")
 }
@@ -136,10 +137,12 @@ model ChecklistItem {
   position      Int       @default(0)
   completedById String?
   completedAt   DateTime?
+  assigneeId    String?
   createdAt     DateTime  @default(now())
 
   card        Card  @relation(fields: [cardId], references: [id], onDelete: Cascade)
   completedBy User? @relation("ChecklistCompletedBy", fields: [completedById], references: [id], onDelete: SetNull)
+  assignee    User? @relation("ChecklistAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
 
   @@map("checklist_items")
 }

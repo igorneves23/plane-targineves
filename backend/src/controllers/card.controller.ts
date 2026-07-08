@@ -20,7 +20,10 @@ const cardInclude = {
   labels: { include: { label: true } },
   checklist: {
     orderBy: { position: 'asc' as const },
-    include: { completedBy: { select: { id: true, name: true } } },
+    include: {
+      completedBy: { select: { id: true, name: true } },
+      assignee: { select: { id: true, name: true, avatar: true } },
+    },
   },
   comments: {
     orderBy: { createdAt: 'desc' as const },

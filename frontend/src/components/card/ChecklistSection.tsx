@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Plus, Trash2, Pencil } from 'lucide-react'
+import { Plus, Trash2, Pencil, UserPlus } from 'lucide-react'
 import { format } from 'date-fns'
 import api from '../../services/api'
 import { Card, ChecklistItem } from '../../types'
+import { Avatar } from '../ui/Avatar'
 import clsx from 'clsx'
 
 interface Props { card: Card; onUpdate: (card: Card) => void }
@@ -12,6 +13,7 @@ export function ChecklistSection({ card, onUpdate }: Props) {
   const [newItem, setNewItem] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingValue, setEditingValue] = useState('')
+  const [assigneePickerFor, setAssigneePickerFor] = useState<string | null>(null)
 
   async function addItem(e: React.FormEvent) {
     e.preventDefault()
@@ -53,6 +55,12 @@ export function ChecklistSection({ card, onUpdate }: Props) {
     cancelEdit()
   }
 
+  async function setAssignee(item: ChecklistItem, assigneeId: string | null) {
+    const { data } = await api.put(`/checklist/${item.id}`, { assigneeId })
+    onUpdate({ ...card, checklist: card.checklist.map((i) => (i.id === item.id ? data : i)) })
+    setAssigneePickerFor(null)
+  }
+
   return (
     <div className="space-y-1.5">
       {card.checklist?.map((item) => (
@@ -90,6 +98,53 @@ export function ChecklistSection({ card, onUpdate }: Props) {
                 {item.title}
               </span>
             )}
+
+            {/* Responsável pelo item */}
+            <div className="relative shrink-0">
+              <button
+                onClick={() => setAssigneePickerFor(assigneePickerFor === item.id ? null : item.id)}
+                title={item.assignee ? item.assignee.name : 'Atribuir responsável'}
+                className="block"
+              >
+                {item.assignee ? (
+                  <Avatar name={item.assignee.name} src={item.assignee.avatar} size="xs" />
+                ) : (
+                  <span className="w-5 h-5 rounded-full border border-dashed border-bdr/30 flex items-center justify-center text-tx3 hover:text-tx1 hover:border-bdr/60 transition-colors">
+                    <UserPlus className="w-3 h-3" />
+                  </span>
+                )}
+              </button>
+
+              {assigneePickerFor === item.id && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setAssigneePickerFor(null)} />
+                  <div className="absolute right-0 top-full mt-1 w-44 bg-bg2 border border-bdr/10 rounded-lg shadow-xl z-20 py-1 max-h-48 overflow-y-auto">
+                    {(card.members?.length ?? 0) === 0 && (
+                      <p className="px-3 py-2 text-xs text-tx3">Adicione responsáveis ao cartão primeiro</p>
+                    )}
+                    {card.members?.map(({ user }) => (
+                      <button
+                        key={user.id}
+                        onClick={() => setAssignee(item, user.id)}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-xs text-tx2 hover:bg-bdr/5 hover:text-tx1 transition-colors"
+                      >
+                        <Avatar name={user.name} src={user.avatar} size="xs" />
+                        <span className="truncate">{user.name}</span>
+                        {item.assigneeId === user.id && <span className="ml-auto text-brand-400">✓</span>}
+                      </button>
+                    ))}
+                    {item.assigneeId && (
+                      <button
+                        onClick={() => setAssignee(item, null)}
+                        className="w-full text-left px-3 py-2 text-xs text-tx3 hover:bg-bdr/5 hover:text-red-400 transition-colors border-t border-bdr/5 mt-1"
+                      >
+                        Remover responsável
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
 
             {/* Ações (aparecem no hover) */}
             <div className="flex items-center gap-0.5 opacity-0 group-hover/item:opacity-100 transition-all shrink-0">

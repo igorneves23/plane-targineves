@@ -4,7 +4,7 @@ import { prisma } from '../lib/prisma'
 import { AuthRequest } from '../middlewares/auth'
 
 export async function createItem(req: AuthRequest, res: Response) {
-  const schema = z.object({ cardId: z.string(), title: z.string().min(1) })
+  const schema = z.object({ cardId: z.string(), title: z.string().min(1), assigneeId: z.string().optional().nullable() })
   const parsed = schema.safeParse(req.body)
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.flatten() })
@@ -14,6 +14,10 @@ export async function createItem(req: AuthRequest, res: Response) {
   const count = await prisma.checklistItem.count({ where: { cardId: parsed.data.cardId } })
   const item = await prisma.checklistItem.create({
     data: { ...parsed.data, position: count },
+    include: {
+      completedBy: { select: { id: true, name: true } },
+      assignee: { select: { id: true, name: true, avatar: true } },
+    },
   })
   res.status(201).json(item)
 }
@@ -23,6 +27,7 @@ export async function updateItem(req: AuthRequest, res: Response) {
     title: z.string().min(1).optional(),
     completed: z.boolean().optional(),
     position: z.number().int().optional(),
+    assigneeId: z.string().nullable().optional(),
   })
   const parsed = schema.safeParse(req.body)
   if (!parsed.success) {
@@ -41,7 +46,10 @@ export async function updateItem(req: AuthRequest, res: Response) {
   const item = await prisma.checklistItem.update({
     where: { id: req.params.id },
     data,
-    include: { completedBy: { select: { id: true, name: true } } },
+    include: {
+      completedBy: { select: { id: true, name: true } },
+      assignee: { select: { id: true, name: true, avatar: true } },
+    },
   })
   res.json(item)
 }
