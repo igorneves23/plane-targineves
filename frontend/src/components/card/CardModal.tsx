@@ -35,6 +35,16 @@ const RECURRING_TYPES: { value: RecurringType; label: string }[] = [
   { value: 'YEARLY', label: 'Anual' },
 ]
 
+const WEEKDAYS = [
+  { value: 0, label: 'Domingo' },
+  { value: 1, label: 'Segunda-feira' },
+  { value: 2, label: 'Terça-feira' },
+  { value: 3, label: 'Quarta-feira' },
+  { value: 4, label: 'Quinta-feira' },
+  { value: 5, label: 'Sexta-feira' },
+  { value: 6, label: 'Sábado' },
+]
+
 interface Props { card: Card; onClose: () => void }
 
 export function CardModal({ card: initialCard, onClose }: Props) {
@@ -99,6 +109,17 @@ export function CardModal({ card: initialCard, onClose }: Props) {
     const [hh, mm] = time.split(':').map(Number)
     const d = existingIso ? new Date(existingIso) : new Date()
     d.setHours(hh, mm, 0, 0)
+    return d.toISOString()
+  }
+
+  function nextWeekday(existingIso: string | null | undefined, weekday: number): string {
+    const now = new Date()
+    const time = existingIso ? new Date(existingIso) : now
+    const d = new Date(now)
+    const diff = (weekday - now.getDay() + 7) % 7
+    d.setDate(now.getDate() + diff)
+    d.setHours(time.getHours(), time.getMinutes(), 0, 0)
+    if (diff === 0 && d.getTime() < now.getTime()) d.setDate(d.getDate() + 7)
     return d.toISOString()
   }
 
@@ -318,6 +339,21 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                       <option key={r.value} value={r.value}>{r.label}</option>
                     ))}
                   </select>
+                  {card.recurringType === 'WEEKLY' && (
+                    <div>
+                      <label className="text-xs text-tx3 block mb-1">Dia da semana</label>
+                      <select
+                        value={card.nextExecution ? new Date(card.nextExecution).getDay() : ''}
+                        onChange={(e) => patch({ nextExecution: nextWeekday(card.nextExecution, Number(e.target.value)) } as Partial<Card>)}
+                        className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                      >
+                        <option value="">Selecionar...</option>
+                        {WEEKDAYS.map((w) => (
+                          <option key={w.value} value={w.value}>{w.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                   <div>
                     <label className="text-xs text-tx3 block mb-1">Horário</label>
                     <input
