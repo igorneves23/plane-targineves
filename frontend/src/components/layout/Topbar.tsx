@@ -6,8 +6,7 @@ import { useSidebar } from '../../context/SidebarContext'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Modal } from '../ui/Modal'
-
-const COLORS = ['#6366f1','#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6']
+import { BOARD_COLORS as COLORS } from '../../constants/colors'
 
 interface Props { title?: string }
 

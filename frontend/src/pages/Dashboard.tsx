@@ -9,8 +9,7 @@ import { Input } from '../components/ui/Input'
 import { Board } from '../types'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-
-const COLORS = ['#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6']
+import { BOARD_COLORS as COLORS } from '../constants/colors'
 
 const emptyForm = { title: '', description: '', color: COLORS[0] }
 
