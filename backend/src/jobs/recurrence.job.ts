@@ -27,6 +27,17 @@ export function startRecurrenceJob() {
     })
 
     for (const card of due) {
+      // Se houver data de vencimento, ela marca o fim da recorrência.
+      // Sem vencimento, a tarefa se repete indefinidamente.
+      if (card.dueDate && now > card.dueDate) {
+        await prisma.card.update({
+          where: { id: card.id },
+          data: { recurring: false, nextExecution: null },
+        })
+        console.log(`[Recurrence] "${card.title}" encerrada — vencimento atingido`)
+        continue
+      }
+
       const count = await prisma.card.count({ where: { columnId: card.columnId } })
       const newCard = await prisma.card.create({
         data: {
@@ -39,6 +50,7 @@ export function startRecurrenceJob() {
           createdById: card.createdById,
           recurring: card.recurring,
           recurringType: card.recurringType,
+          dueDate: card.dueDate,
           nextExecution: nextDate(card.recurringType!, now),
         },
       })
