@@ -125,17 +125,25 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     set((s) => {
       if (!s.activeBoard) return s
       let movedCard: Card | undefined
-      const cols: Column[] = s.activeBoard.columns.map((c) => {
-        const card = c.cards.find((cd) => cd.id === cardId)
-        if (card) movedCard = card
-        return { ...c, cards: c.cards.filter((cd) => cd.id !== cardId) }
+      s.activeBoard.columns.forEach((c) => {
+        const found = c.cards.find((cd) => cd.id === cardId)
+        if (found) movedCard = found
       })
       if (!movedCard) return s
-      const updated = cols.map((c) =>
-        c.id === targetColumnId
-          ? { ...c, cards: [...c.cards, { ...movedCard!, columnId: targetColumnId, position }] }
-          : c
-      )
+
+      const cols: Column[] = s.activeBoard.columns.map((c) => ({
+        ...c,
+        cards: c.cards.filter((cd) => cd.id !== cardId),
+      }))
+
+      const updated = cols.map((c) => {
+        if (c.id !== targetColumnId) return c
+        const newCards = [...c.cards]
+        const clampedIndex = Math.max(0, Math.min(position, newCards.length))
+        newCards.splice(clampedIndex, 0, { ...movedCard!, columnId: targetColumnId, position })
+        return { ...c, cards: newCards }
+      })
+
       return { activeBoard: { ...s.activeBoard, columns: updated } }
     })
   },
