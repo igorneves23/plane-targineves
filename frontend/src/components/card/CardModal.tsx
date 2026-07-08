@@ -56,9 +56,22 @@ export function CardModal({ card: initialCard, onClose }: Props) {
   const [saving, setSaving] = useState(false)
   const { updateCardInStore, deleteCard } = useBoardStore()
 
+  const [vencimentoValue, setVencimentoValue] = useState(card.dueDate ? toLocalInput(card.dueDate) : '')
+  const [horarioValue, setHorarioValue] = useState(card.nextExecution ? toLocalTime(card.nextExecution) : '')
+
   useEffect(() => {
     cardService.get(card.id).then((c) => setCard(c))
   }, [card.id])
+
+  // Mantém os campos de data/hora em sincronia com o card, sem prender a
+  // digitação ao tempo de resposta da API (senão o campo parece travar).
+  useEffect(() => {
+    setVencimentoValue(card.dueDate ? toLocalInput(card.dueDate) : '')
+  }, [card.dueDate])
+
+  useEffect(() => {
+    setHorarioValue(card.nextExecution ? toLocalTime(card.nextExecution) : '')
+  }, [card.nextExecution])
 
   // Atualiza o card local E o store do board (mantém CardItem sincronizado)
   function syncCard(updated: Card) {
@@ -288,8 +301,11 @@ export function CardModal({ card: initialCard, onClose }: Props) {
               </div>
               <input
                 type="datetime-local"
-                value={card.dueDate ? toLocalInput(card.dueDate) : ''}
-                onChange={(e) => patch({ dueDate: e.target.value ? new Date(e.target.value).toISOString() : null } as Partial<Card>)}
+                value={vencimentoValue}
+                onChange={(e) => {
+                  setVencimentoValue(e.target.value)
+                  patch({ dueDate: e.target.value ? new Date(e.target.value).toISOString() : null } as Partial<Card>)
+                }}
                 className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
             </div>
@@ -358,8 +374,11 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                     <label className="text-xs text-tx3 block mb-1">Horário</label>
                     <input
                       type="time"
-                      value={card.nextExecution ? toLocalTime(card.nextExecution) : ''}
-                      onChange={(e) => patch({ nextExecution: combineDateTime(card.nextExecution, e.target.value) } as Partial<Card>)}
+                      value={horarioValue}
+                      onChange={(e) => {
+                        setHorarioValue(e.target.value)
+                        if (e.target.value) patch({ nextExecution: combineDateTime(card.nextExecution, e.target.value) } as Partial<Card>)
+                      }}
                       className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500"
                     />
                   </div>
