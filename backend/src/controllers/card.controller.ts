@@ -12,6 +12,7 @@ const cardSchema = z.object({
   status: z.enum(['TODO', 'IN_PROGRESS', 'DONE']).optional(),
   recurring: z.boolean().optional(),
   recurringType: z.enum(['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY']).optional().nullable(),
+  nextExecution: z.string().datetime().optional().nullable(),
 })
 
 const cardInclude = {
@@ -80,6 +81,7 @@ export async function updateCard(req: AuthRequest, res: Response) {
     data: {
       ...parsed.data,
       dueDate: parsed.data.dueDate ? new Date(parsed.data.dueDate) : parsed.data.dueDate,
+      nextExecution: parsed.data.nextExecution ? new Date(parsed.data.nextExecution) : parsed.data.nextExecution,
     },
     include: cardInclude,
   })

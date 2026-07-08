@@ -90,6 +90,18 @@ export function CardModal({ card: initialCard, onClose }: Props) {
     return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
   }
 
+  function toLocalTime(iso: string) {
+    const d = new Date(iso)
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(11, 16)
+  }
+
+  function combineDateTime(existingIso: string | null | undefined, time: string): string {
+    const [hh, mm] = time.split(':').map(Number)
+    const d = existingIso ? new Date(existingIso) : new Date()
+    d.setHours(hh, mm, 0, 0)
+    return d.toISOString()
+  }
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto md:flex md:items-start md:justify-center md:pt-10 md:pb-4 md:px-4">
       {/* Backdrop — desktop only */}
@@ -295,16 +307,27 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                 <span className="text-xs text-tx2">Ativar recorrência</span>
               </label>
               {card.recurring && (
-                <select
-                  value={card.recurringType || ''}
-                  onChange={(e) => patch({ recurringType: e.target.value as RecurringType } as Partial<Card>)}
-                  className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500"
-                >
-                  <option value="">Selecionar...</option>
-                  {RECURRING_TYPES.map((r) => (
-                    <option key={r.value} value={r.value}>{r.label}</option>
-                  ))}
-                </select>
+                <div className="space-y-2">
+                  <select
+                    value={card.recurringType || ''}
+                    onChange={(e) => patch({ recurringType: e.target.value as RecurringType } as Partial<Card>)}
+                    className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  >
+                    <option value="">Selecionar...</option>
+                    {RECURRING_TYPES.map((r) => (
+                      <option key={r.value} value={r.value}>{r.label}</option>
+                    ))}
+                  </select>
+                  <div>
+                    <label className="text-xs text-tx3 block mb-1">Horário</label>
+                    <input
+                      type="time"
+                      value={card.nextExecution ? toLocalTime(card.nextExecution) : ''}
+                      onChange={(e) => patch({ nextExecution: combineDateTime(card.nextExecution, e.target.value) } as Partial<Card>)}
+                      className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                    />
+                  </div>
+                </div>
               )}
             </div>
           </div>
