@@ -52,19 +52,22 @@ export function MembersSection({ card, onUpdate }: Props) {
           <Plus className="w-3 h-3" /> Adicionar
         </button>
         {open && (
-          <div className="absolute top-full left-0 mt-1 w-48 bg-bg2 border border-bdr/10 rounded-lg shadow-xl z-20 py-1 max-h-48 overflow-y-auto">
-            {users.map((u) => (
-              <button
-                key={u.id}
-                onClick={() => toggle(u.id)}
-                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-tx2 hover:bg-bdr/5 hover:text-tx1 transition-colors"
-              >
-                <Avatar name={u.name} src={u.avatar} size="xs" />
-                <span className="truncate">{u.name}</span>
-                {memberIds.includes(u.id) && <span className="ml-auto text-brand-400">✓</span>}
-              </button>
-            ))}
-          </div>
+          <>
+            <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+            <div className="absolute top-full left-0 mt-1 w-48 bg-bg2 border border-bdr/10 rounded-lg shadow-xl z-20 py-1 max-h-48 overflow-y-auto">
+              {users.map((u) => (
+                <button
+                  key={u.id}
+                  onClick={() => toggle(u.id)}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-tx2 hover:bg-bdr/5 hover:text-tx1 transition-colors"
+                >
+                  <Avatar name={u.name} src={u.avatar} size="xs" />
+                  <span className="truncate">{u.name}</span>
+                  {memberIds.includes(u.id) && <span className="ml-auto text-brand-400">✓</span>}
+                </button>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>
