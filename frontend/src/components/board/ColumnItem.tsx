@@ -11,9 +11,10 @@ import clsx from 'clsx'
 interface Props {
   column: Column
   onCardClick: (card: Card) => void
+  boardColor?: string
 }
 
-export function ColumnItem({ column, onCardClick }: Props) {
+export function ColumnItem({ column, onCardClick, boardColor }: Props) {
   const [adding, setAdding] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [editing, setEditing] = useState(false)
@@ -150,7 +151,11 @@ export function ColumnItem({ column, onCardClick }: Props) {
         <div className="flex-1 flex flex-col bg-bg1/40 border border-bdr/5 border-t-0 rounded-b-2xl">
           {viewMode === 'timeline' ? (
             <div className="flex-1 overflow-y-auto p-2 min-h-[40px]">
-              <DayTimeline cards={column.cards.filter(hasTimelineSlot)} onCardClick={onCardClick} />
+              <DayTimeline
+                cards={column.cards.filter(hasTimelineSlot)}
+                onCardClick={onCardClick}
+                getColor={() => boardColor}
+              />
               {column.cards.some((c) => !hasTimelineSlot(c)) && (
                 <div className="mt-3 pt-3 border-t border-bdr/10 space-y-2">
                   <p className="text-[10px] text-tx3 uppercase tracking-wider px-1">Sem horário definido</p>

@@ -105,7 +105,11 @@ export default function WeeklyView() {
                         <p className="text-xs text-tx3 text-center py-6">Nada programado</p>
                       )}
                       {viewMode === 'timeline' && dayCards.length > 0 && (
-                        <DayTimeline cards={dayCards} onCardClick={(c) => setActiveCard(c as WeeklyCard)} />
+                        <DayTimeline
+                          cards={dayCards}
+                          onCardClick={(c) => setActiveCard(c as WeeklyCard)}
+                          getColor={(c) => (c as WeeklyCard).board.color}
+                        />
                       )}
                       {viewMode === 'list' && dayCards.map((card) => {
                         const doneItems = card.checklist?.filter((i) => i.completed).length ?? 0

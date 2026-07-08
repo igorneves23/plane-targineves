@@ -75,7 +75,7 @@ export function BoardView({ board }: Props) {
         <SortableContext items={board.columns.map((c) => c.id)} strategy={horizontalListSortingStrategy}>
           <div className="flex gap-4 h-full overflow-x-auto pb-4 pt-2 px-6">
             {board.columns.map((col) => (
-              <ColumnItem key={col.id} column={col} onCardClick={setActiveCard} />
+              <ColumnItem key={col.id} column={col} onCardClick={setActiveCard} boardColor={board.color} />
             ))}
 
             <div className="w-72 shrink-0">
