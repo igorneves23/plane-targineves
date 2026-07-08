@@ -45,11 +45,12 @@ model User {
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
-  createdBoards Board[]      @relation("BoardCreator")
-  cardMembers   CardMember[]
-  comments      Comment[]
-  activities    Activity[]
-  createdCards  Card[]       @relation("CardCreator")
+  createdBoards       Board[]         @relation("BoardCreator")
+  cardMembers         CardMember[]
+  comments            Comment[]
+  activities          Activity[]
+  createdCards        Card[]          @relation("CardCreator")
+  completedChecklists ChecklistItem[] @relation("ChecklistCompletedBy")
 
   @@map("users")
 }
@@ -123,14 +124,17 @@ model CardMember {
 }
 
 model ChecklistItem {
-  id        String   @id @default(cuid())
-  cardId    String
-  title     String
-  completed Boolean  @default(false)
-  position  Int      @default(0)
-  createdAt DateTime @default(now())
+  id            String    @id @default(cuid())
+  cardId        String
+  title         String
+  completed     Boolean   @default(false)
+  position      Int       @default(0)
+  completedById String?
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
 
-  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  card        Card  @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  completedBy User? @relation("ChecklistCompletedBy", fields: [completedById], references: [id], onDelete: SetNull)
 
   @@map("checklist_items")
 }

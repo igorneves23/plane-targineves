@@ -18,7 +18,10 @@ const cardSchema = z.object({
 const cardInclude = {
   members: { include: { user: { select: { id: true, name: true, avatar: true } } } },
   labels: { include: { label: true } },
-  checklist: { orderBy: { position: 'asc' as const } },
+  checklist: {
+    orderBy: { position: 'asc' as const },
+    include: { completedBy: { select: { id: true, name: true } } },
+  },
   comments: {
     orderBy: { createdAt: 'desc' as const },
     include: { user: { select: { id: true, name: true, avatar: true } } },

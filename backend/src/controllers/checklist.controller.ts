@@ -30,9 +30,18 @@ export async function updateItem(req: AuthRequest, res: Response) {
     return
   }
 
+  const { completed, ...rest } = parsed.data
+  const data: typeof rest & { completed?: boolean; completedById?: string | null; completedAt?: Date | null } = { ...rest }
+  if (completed !== undefined) {
+    data.completed = completed
+    data.completedById = completed ? req.userId : null
+    data.completedAt = completed ? new Date() : null
+  }
+
   const item = await prisma.checklistItem.update({
     where: { id: req.params.id },
-    data: parsed.data,
+    data,
+    include: { completedBy: { select: { id: true, name: true } } },
   })
   res.json(item)
 }

@@ -38,6 +38,9 @@ export interface ChecklistItem {
   title: string
   completed: boolean
   position: number
+  completedById?: string | null
+  completedAt?: string | null
+  completedBy?: { id: string; name: string } | null
   createdAt: string
 }
 

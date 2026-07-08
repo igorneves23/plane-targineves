@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Plus, Trash2, Pencil } from 'lucide-react'
+import { format } from 'date-fns'
 import api from '../../services/api'
 import { Card, ChecklistItem } from '../../types'
 import clsx from 'clsx'
@@ -55,59 +56,68 @@ export function ChecklistSection({ card, onUpdate }: Props) {
   return (
     <div className="space-y-1.5">
       {card.checklist?.map((item) => (
-        <div key={item.id} className="flex items-center gap-3 group/item py-0.5">
-          <input
-            type="checkbox"
-            checked={item.completed}
-            onChange={() => toggleItem(item)}
-            className="accent-brand-500 w-4 h-4 shrink-0 cursor-pointer mt-0.5"
-          />
-
-          {editingId === item.id ? (
-            /* ── Modo edição ── */
+        <div key={item.id} className="group/item py-0.5">
+          <div className="flex items-center gap-3">
             <input
-              value={editingValue}
-              onChange={(e) => setEditingValue(e.target.value)}
-              autoFocus
-              onBlur={() => saveEdit(item)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') { e.preventDefault(); saveEdit(item) }
-                if (e.key === 'Escape') cancelEdit()
-              }}
-              className="flex-1 bg-bg2 border border-brand-500/60 rounded-md px-2 py-0.5 text-sm text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              type="checkbox"
+              checked={item.completed}
+              onChange={() => toggleItem(item)}
+              className="accent-brand-500 w-4 h-4 shrink-0 cursor-pointer mt-0.5"
             />
-          ) : (
-            /* ── Modo visualização ── */
-            <span
-              onDoubleClick={() => !item.completed && startEdit(item)}
-              className={clsx(
-                'text-sm flex-1 leading-snug',
-                item.completed ? 'line-through text-tx3' : 'text-tx1'
-              )}
-            >
-              {item.title}
-            </span>
-          )}
 
-          {/* Ações (aparecem no hover) */}
-          <div className="flex items-center gap-0.5 opacity-0 group-hover/item:opacity-100 transition-all shrink-0">
-            {!item.completed && editingId !== item.id && (
-              <button
-                onClick={() => startEdit(item)}
-                className="p-1 rounded hover:bg-bdr/10 text-tx3 hover:text-tx1 transition-colors"
-                title="Editar item"
+            {editingId === item.id ? (
+              /* ── Modo edição ── */
+              <input
+                value={editingValue}
+                onChange={(e) => setEditingValue(e.target.value)}
+                autoFocus
+                onBlur={() => saveEdit(item)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') { e.preventDefault(); saveEdit(item) }
+                  if (e.key === 'Escape') cancelEdit()
+                }}
+                className="flex-1 bg-bg2 border border-brand-500/60 rounded-md px-2 py-0.5 text-sm text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              />
+            ) : (
+              /* ── Modo visualização ── */
+              <span
+                onDoubleClick={() => !item.completed && startEdit(item)}
+                className={clsx(
+                  'text-sm flex-1 leading-snug',
+                  item.completed ? 'line-through text-tx3' : 'text-tx1'
+                )}
               >
-                <Pencil className="w-3 h-3" />
-              </button>
+                {item.title}
+              </span>
             )}
-            <button
-              onClick={() => deleteItem(item.id)}
-              className="p-1 rounded hover:bg-red-500/10 text-tx3 hover:text-red-400 transition-colors"
-              title="Excluir item"
-            >
-              <Trash2 className="w-3 h-3" />
-            </button>
+
+            {/* Ações (aparecem no hover) */}
+            <div className="flex items-center gap-0.5 opacity-0 group-hover/item:opacity-100 transition-all shrink-0">
+              {!item.completed && editingId !== item.id && (
+                <button
+                  onClick={() => startEdit(item)}
+                  className="p-1 rounded hover:bg-bdr/10 text-tx3 hover:text-tx1 transition-colors"
+                  title="Editar item"
+                >
+                  <Pencil className="w-3 h-3" />
+                </button>
+              )}
+              <button
+                onClick={() => deleteItem(item.id)}
+                className="p-1 rounded hover:bg-red-500/10 text-tx3 hover:text-red-400 transition-colors"
+                title="Excluir item"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            </div>
           </div>
+
+          {item.completed && item.completedBy && (
+            <p className="text-xs text-tx3 pl-7 mt-0.5">
+              Feita por <span className="text-tx2">{item.completedBy.name}</span>
+              {item.completedAt && <> às {format(new Date(item.completedAt), 'dd/MM/yyyy HH:mm')}</>}
+            </p>
+          )}
         </div>
       ))}
 
