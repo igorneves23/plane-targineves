@@ -100,21 +100,23 @@ export function Sidebar() {
             {!collapsed && 'Visão Semanal'}
           </Link>
 
-          <Link
-            to="/workload"
-            onClick={close}
-            title={collapsed ? 'Carga Horária' : undefined}
-            className={clsx(
-              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-              collapsed && 'md:justify-center md:px-2',
-              location.pathname === '/workload'
-                ? 'bg-brand-500/20 text-brand-400'
-                : 'text-tx2 hover:bg-bdr/5 hover:text-tx1'
-            )}
-          >
-            <Gauge className="w-4 h-4 shrink-0" />
-            {!collapsed && 'Carga Horária'}
-          </Link>
+          {user?.role === 'ADMIN' && (
+            <Link
+              to="/workload"
+              onClick={close}
+              title={collapsed ? 'Carga Horária' : undefined}
+              className={clsx(
+                'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                collapsed && 'md:justify-center md:px-2',
+                location.pathname === '/workload'
+                  ? 'bg-brand-500/20 text-brand-400'
+                  : 'text-tx2 hover:bg-bdr/5 hover:text-tx1'
+              )}
+            >
+              <Gauge className="w-4 h-4 shrink-0" />
+              {!collapsed && 'Carga Horária'}
+            </Link>
+          )}
 
           {user?.role === 'ADMIN' && (
             <Link

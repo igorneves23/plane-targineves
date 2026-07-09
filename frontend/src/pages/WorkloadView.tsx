@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ChevronDown, ChevronUp, Gauge } from 'lucide-react'
 import { Sidebar } from '../components/layout/Sidebar'
 import { Topbar } from '../components/layout/Topbar'
 import { Avatar } from '../components/ui/Avatar'
 import { cardService } from '../services/card.service'
+import { useAuthStore } from '../store/authStore'
 import { WorkloadEntry } from '../types'
 import clsx from 'clsx'
 
@@ -21,13 +23,19 @@ export default function WorkloadView() {
   const [entries, setEntries] = useState<WorkloadEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const { user } = useAuthStore()
+  const navigate = useNavigate()
 
   useEffect(() => {
+    if (user?.role !== 'ADMIN') {
+      navigate('/dashboard')
+      return
+    }
     cardService.workload().then((data) => {
       setEntries(data)
       setLoading(false)
     })
-  }, [])
+  }, [user])
 
   const observedMax = Math.max(0, ...entries.map((e) => e.minutes))
   const scale = Math.max(observedMax, 8 * 60) // referência mínima de 8h para a barra não parecer cheia à toa
