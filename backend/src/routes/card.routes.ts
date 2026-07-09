@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import {
   createCard, getCard, updateCard, deleteCard, moveCard,
-  addMember, removeMember, getActivities, listWeeklyCards,
+  addMember, removeMember, getActivities, listWeeklyCards, listWorkload,
 } from '../controllers/card.controller'
 import { authenticate } from '../middlewares/auth'
 
@@ -10,6 +10,7 @@ const router = Router()
 router.use(authenticate)
 router.post('/', createCard)
 router.get('/weekly', listWeeklyCards)
+router.get('/workload', listWorkload)
 router.get('/:id', getCard)
 router.put('/:id', updateCard)
 router.delete('/:id', deleteCard)

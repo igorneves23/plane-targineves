@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, LogOut, Moon, Sun, Users, ChevronRight, X, PanelLeftClose, PanelLeftOpen, CalendarRange } from 'lucide-react'
+import { LayoutDashboard, LogOut, Moon, Sun, Users, ChevronRight, X, PanelLeftClose, PanelLeftOpen, CalendarRange, Gauge } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 import { useBoardStore } from '../../store/boardStore'
 import { useTheme } from '../../context/ThemeContext'
@@ -98,6 +98,22 @@ export function Sidebar() {
           >
             <CalendarRange className="w-4 h-4 shrink-0" />
             {!collapsed && 'Visão Semanal'}
+          </Link>
+
+          <Link
+            to="/workload"
+            onClick={close}
+            title={collapsed ? 'Carga Horária' : undefined}
+            className={clsx(
+              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+              collapsed && 'md:justify-center md:px-2',
+              location.pathname === '/workload'
+                ? 'bg-brand-500/20 text-brand-400'
+                : 'text-tx2 hover:bg-bdr/5 hover:text-tx1'
+            )}
+          >
+            <Gauge className="w-4 h-4 shrink-0" />
+            {!collapsed && 'Carga Horária'}
           </Link>
 
           {user?.role === 'ADMIN' && (

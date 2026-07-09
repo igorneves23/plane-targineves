@@ -113,6 +113,20 @@ export interface WeeklyCard extends Card {
   board: Pick<Board, 'id' | 'title' | 'color'>
 }
 
+export interface WorkloadCardRef {
+  id: string
+  title: string
+  minutes: number
+  boardTitle: string
+  boardColor: string
+}
+
+export interface WorkloadEntry {
+  user: Pick<User, 'id' | 'name' | 'avatar'>
+  minutes: number
+  cards: WorkloadCardRef[]
+}
+
 export interface Board {
   id: string
   title: string

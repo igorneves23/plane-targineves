@@ -185,6 +185,77 @@ export async function listWeeklyCards(_req: AuthRequest, res: Response) {
   res.json(result)
 }
 
+// Fator de conversão da duração de uma tarefa recorrente para uma
+// carga semanal equivalente (ex: uma tarefa diária de 30min conta 3h30/semana)
+const WEEKLY_FACTOR: Record<string, number> = {
+  DAILY: 7,
+  WEEKLY: 1,
+  MONTHLY: 7 / 30,
+  YEARLY: 7 / 365,
+}
+
+function startOfWeek(d: Date): Date {
+  const day = d.getDay()
+  const diff = (day === 0 ? -6 : 1) - day
+  const monday = new Date(d)
+  monday.setHours(0, 0, 0, 0)
+  monday.setDate(d.getDate() + diff)
+  return monday
+}
+
+export async function listWorkload(_req: AuthRequest, res: Response) {
+  const cards = await prisma.card.findMany({
+    where: { status: { not: 'DONE' } },
+    include: {
+      members: { include: { user: { select: { id: true, name: true, avatar: true } } } },
+      column: { include: { board: { select: { id: true, title: true, color: true } } } },
+    },
+  })
+
+  const now = new Date()
+  const weekStart = startOfWeek(now)
+  const weekEnd = new Date(weekStart)
+  weekEnd.setDate(weekStart.getDate() + 7)
+
+  const perUser = new Map<string, {
+    user: { id: string; name: string; avatar: string | null }
+    minutes: number
+    cards: { id: string; title: string; minutes: number; boardTitle: string; boardColor: string }[]
+  }>()
+
+  for (const card of cards) {
+    if (card.members.length === 0) continue
+    const duration = card.durationMinutes ?? 60
+
+    let weeklyMinutes = 0
+    if (card.recurring && card.recurringType) {
+      weeklyMinutes = duration * (WEEKLY_FACTOR[card.recurringType] ?? 1)
+    } else if (card.dueDate && card.dueDate >= weekStart && card.dueDate < weekEnd) {
+      weeklyMinutes = duration
+    }
+
+    if (weeklyMinutes <= 0) continue
+
+    for (const member of card.members) {
+      if (!perUser.has(member.userId)) {
+        perUser.set(member.userId, { user: member.user, minutes: 0, cards: [] })
+      }
+      const entry = perUser.get(member.userId)!
+      entry.minutes += weeklyMinutes
+      entry.cards.push({
+        id: card.id,
+        title: card.title,
+        minutes: weeklyMinutes,
+        boardTitle: card.column.board.title,
+        boardColor: card.column.board.color,
+      })
+    }
+  }
+
+  const result = [...perUser.values()].sort((a, b) => b.minutes - a.minutes)
+  res.json(result)
+}
+
 export async function getActivities(req: AuthRequest, res: Response) {
   const activities = await prisma.activity.findMany({
     where: { cardId: req.params.id },
