@@ -20,6 +20,18 @@ export async function createLabel(req: AuthRequest, res: Response) {
   res.status(201).json(label)
 }
 
+export async function updateLabel(req: AuthRequest, res: Response) {
+  const schema = z.object({ name: z.string().min(1).optional(), color: z.string().optional() })
+  const parsed = schema.safeParse(req.body)
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.flatten() })
+    return
+  }
+
+  const label = await prisma.label.update({ where: { id: req.params.id }, data: parsed.data })
+  res.json(label)
+}
+
 export async function deleteLabel(req: AuthRequest, res: Response) {
   await prisma.label.delete({ where: { id: req.params.id } })
   res.status(204).send()
