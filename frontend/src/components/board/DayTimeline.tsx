@@ -1,4 +1,8 @@
+import { useState } from 'react'
+import { createPortal } from 'react-dom'
+import { CheckSquare, Clock, MessageSquare } from 'lucide-react'
 import { Card } from '../../types'
+import { Avatar } from '../ui/Avatar'
 import clsx from 'clsx'
 
 interface Props {
@@ -18,6 +22,13 @@ function hexToRgba(hex: string, alpha: number): string {
   const g = parseInt(h.slice(2, 4), 16)
   const b = parseInt(h.slice(4, 6), 16)
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
+const PRIORITY_LABEL: Record<string, { label: string; color: string }> = {
+  LOW: { label: 'Baixa', color: '#6b7280' },
+  MEDIUM: { label: 'Média', color: '#3b82f6' },
+  HIGH: { label: 'Alta', color: '#f59e0b' },
+  URGENT: { label: 'Urgente', color: '#ef4444' },
 }
 
 interface PositionedCard {
@@ -89,10 +100,31 @@ function layoutCards(cards: Card[]): PositionedCard[] {
   return positioned
 }
 
+function timeLabel(d: Date) {
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+interface HoverState {
+  item: PositionedCard
+  x: number
+  y: number
+}
+
+const TOOLTIP_WIDTH = 260
+
 export function DayTimeline({ cards, onCardClick, startHour = 6, endHour = 23, pxPerHour = 48, getColor }: Props) {
   const positioned = layoutCards(cards)
   const totalHeight = (endHour - startHour) * pxPerHour
   const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => startHour + i)
+  const [hovered, setHovered] = useState<HoverState | null>(null)
+
+  function handleEnter(e: React.MouseEvent<HTMLElement>, item: PositionedCard) {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const overflowsRight = rect.right + 12 + TOOLTIP_WIDTH > window.innerWidth
+    const x = overflowsRight ? rect.left - TOOLTIP_WIDTH - 12 : rect.right + 12
+    const y = Math.min(rect.top, window.innerHeight - 260)
+    setHovered({ item, x: Math.max(8, x), y: Math.max(8, y) })
+  }
 
   return (
     <div className="relative flex" style={{ height: totalHeight }}>
@@ -119,7 +151,8 @@ export function DayTimeline({ cards, onCardClick, startHour = 6, endHour = 23, p
           />
         ))}
 
-        {positioned.map(({ card, start, durationMin, col, totalCols }) => {
+        {positioned.map((item) => {
+          const { card, start, durationMin, col, totalCols } = item
           const startMin = start.getHours() * 60 + start.getMinutes()
           const top = ((startMin - startHour * 60) / 60) * pxPerHour
           const height = Math.max((durationMin / 60) * pxPerHour, 22)
@@ -134,7 +167,8 @@ export function DayTimeline({ cards, onCardClick, startHour = 6, endHour = 23, p
             <div
               key={card.id}
               onClick={() => onCardClick(card)}
-              title={card.title}
+              onMouseEnter={(e) => handleEnter(e, item)}
+              onMouseLeave={() => setHovered(null)}
               className={clsx(
                 'absolute rounded-lg px-2 py-1 overflow-hidden cursor-pointer border',
                 'hover:z-10 hover:shadow-lg transition-shadow',
@@ -161,13 +195,86 @@ export function DayTimeline({ cards, onCardClick, startHour = 6, endHour = 23, p
               </p>
               {height > 32 && (
                 <p className="text-[10px] text-tx3 truncate">
-                  {String(start.getHours()).padStart(2, '0')}:{String(start.getMinutes()).padStart(2, '0')} – {endLabel}
+                  {timeLabel(start)} – {endLabel}
                 </p>
               )}
             </div>
           )
         })}
       </div>
+
+      {hovered && createPortal(<TimelineTooltip item={hovered.item} x={hovered.x} y={hovered.y} getColor={getColor} />, document.body)}
+    </div>
+  )
+}
+
+function TimelineTooltip({ item, x, y, getColor }: { item: PositionedCard; x: number; y: number; getColor?: (card: Card) => string | null | undefined }) {
+  const { card, start, durationMin } = item
+  const endMin = start.getHours() * 60 + start.getMinutes() + durationMin
+  const endLabel = `${String(Math.floor(endMin / 60) % 24).padStart(2, '0')}:${String(endMin % 60).padStart(2, '0')}`
+  const boardColor = getColor?.(card)
+  const board = (card as any).board as { title: string; color: string } | undefined
+  const priority = PRIORITY_LABEL[card.priority]
+  const doneItems = card.checklist?.filter((i) => i.completed).length ?? 0
+  const totalItems = card._count?.checklist ?? card.checklist?.length ?? 0
+  const commentCount = card._count?.comments ?? card.comments?.length ?? 0
+
+  return (
+    <div
+      className="fixed z-[100] pointer-events-none bg-bg2 border border-bdr/10 rounded-xl shadow-2xl p-3 space-y-2"
+      style={{ top: y, left: x, width: TOOLTIP_WIDTH }}
+    >
+      {board && (
+        <div className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-sm shrink-0" style={{ backgroundColor: boardColor ?? board.color }} />
+          <span className="text-[11px] text-tx3 truncate">{board.title}</span>
+        </div>
+      )}
+
+      <p className={clsx('text-sm font-semibold leading-snug', card.status === 'DONE' ? 'text-tx3 line-through' : 'text-tx1')}>
+        {card.title}
+      </p>
+
+      <div className="flex items-center gap-1.5 text-xs text-tx3">
+        <Clock className="w-3 h-3" />
+        {timeLabel(start)} – {endLabel}
+      </div>
+
+      {card.description && (
+        <p className="text-xs text-tx3 line-clamp-2">{card.description}</p>
+      )}
+
+      <div className="flex items-center flex-wrap gap-1.5">
+        <span className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-full bg-bdr/5 border border-bdr/5">
+          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: priority.color }} />
+          {priority.label}
+        </span>
+
+        {totalItems > 0 && (
+          <span className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-full bg-bdr/5 border border-bdr/5 text-tx3">
+            <CheckSquare className="w-3 h-3" />
+            {doneItems}/{totalItems}
+          </span>
+        )}
+
+        {commentCount > 0 && (
+          <span className="inline-flex items-center gap-1 text-[11px] text-tx3">
+            <MessageSquare className="w-3 h-3" />
+            {commentCount}
+          </span>
+        )}
+      </div>
+
+      {card.members?.length > 0 && (
+        <div className="flex items-center gap-1 flex-wrap">
+          {card.members.map(({ user }) => (
+            <div key={user.id} className="flex items-center gap-1 bg-bdr/5 rounded-full pl-0.5 pr-2 py-0.5">
+              <Avatar name={user.name} src={user.avatar} size="xs" />
+              <span className="text-[11px] text-tx2">{user.name.split(' ')[0]}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
