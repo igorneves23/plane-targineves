@@ -73,6 +73,8 @@ export async function syncCardMirrors(cardId: string): Promise<void> {
       recurringType: card.recurringType,
       nextExecution: card.nextExecution,
       durationMinutes: card.durationMinutes,
+      monthlyWeek: card.monthlyWeek,
+      monthlyWeekday: card.monthlyWeekday,
       columnId: column.id,
     }
 

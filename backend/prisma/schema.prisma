@@ -100,6 +100,11 @@ model Card {
   recurringType   RecurringType?
   nextExecution   DateTime?
   durationMinutes Int?           @default(60)
+  // Recorrência mensal por "Nº dia da semana do mês" (ex: primeira segunda-
+  // feira). monthlyWeek: 1-4 = primeira..quarta; -1 = última. Se nulo, a
+  // recorrência mensal usa o dia fixo do mês (comportamento antigo).
+  monthlyWeek     Int?
+  monthlyWeekday  Int?
   createdById     String
   sourceCardId    String?
   createdAt     DateTime       @default(now())

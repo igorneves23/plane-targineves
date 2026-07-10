@@ -16,6 +16,8 @@ const cardSchema = z.object({
   recurringType: z.enum(['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY']).optional().nullable(),
   nextExecution: z.string().datetime().optional().nullable(),
   durationMinutes: z.number().int().min(5).max(24 * 60).optional().nullable(),
+  monthlyWeek: z.number().int().min(-1).max(4).optional().nullable(),
+  monthlyWeekday: z.number().int().min(0).max(6).optional().nullable(),
 })
 
 const cardInclude = {

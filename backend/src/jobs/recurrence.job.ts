@@ -2,12 +2,40 @@ import cron from 'node-cron'
 import { prisma } from '../lib/prisma'
 import { sendCardReminderEmail } from '../lib/mailer'
 
-function nextDate(type: string, from: Date): Date {
+// Calcula o Nº dia-da-semana de um mês (ex: 2ª segunda-feira de março).
+// nth: 1-4 = primeira..quarta ocorrência; -1 = última ocorrência do mês.
+function nthWeekdayOfMonth(year: number, month: number, weekday: number, nth: number): Date {
+  if (nth === -1) {
+    const last = new Date(year, month + 1, 0)
+    const diff = (last.getDay() - weekday + 7) % 7
+    last.setDate(last.getDate() - diff)
+    return last
+  }
+  const first = new Date(year, month, 1)
+  const diff = (weekday - first.getDay() + 7) % 7
+  const day = 1 + diff + (nth - 1) * 7
+  return new Date(year, month, day)
+}
+
+function nextDate(type: string, from: Date, monthlyWeek?: number | null, monthlyWeekday?: number | null): Date {
   const d = new Date(from)
-  if (type === 'DAILY') d.setDate(d.getDate() + 1)
-  else if (type === 'WEEKLY') d.setDate(d.getDate() + 7)
-  else if (type === 'MONTHLY') d.setMonth(d.getMonth() + 1)
-  else if (type === 'YEARLY') d.setFullYear(d.getFullYear() + 1)
+  if (type === 'DAILY') {
+    d.setDate(d.getDate() + 1)
+  } else if (type === 'WEEKLY') {
+    d.setDate(d.getDate() + 7)
+  } else if (type === 'MONTHLY') {
+    if (monthlyWeek != null && monthlyWeekday != null) {
+      let month = d.getMonth() + 1
+      let year = d.getFullYear()
+      if (month > 11) { month = 0; year += 1 }
+      const next = nthWeekdayOfMonth(year, month, monthlyWeekday, monthlyWeek)
+      next.setHours(d.getHours(), d.getMinutes(), 0, 0)
+      return next
+    }
+    d.setMonth(d.getMonth() + 1)
+  } else if (type === 'YEARLY') {
+    d.setFullYear(d.getFullYear() + 1)
+  }
   return d
 }
 
@@ -52,7 +80,9 @@ export function startRecurrenceJob() {
           recurringType: card.recurringType,
           dueDate: card.dueDate,
           durationMinutes: card.durationMinutes,
-          nextExecution: nextDate(card.recurringType!, now),
+          monthlyWeek: card.monthlyWeek,
+          monthlyWeekday: card.monthlyWeekday,
+          nextExecution: nextDate(card.recurringType!, now, card.monthlyWeek, card.monthlyWeekday),
         },
       })
 
@@ -64,7 +94,7 @@ export function startRecurrenceJob() {
 
       await prisma.card.update({
         where: { id: card.id },
-        data: { nextExecution: nextDate(card.recurringType!, now) },
+        data: { nextExecution: nextDate(card.recurringType!, now, card.monthlyWeek, card.monthlyWeekday) },
       })
 
       const boardUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/board/${card.column.board.id}`

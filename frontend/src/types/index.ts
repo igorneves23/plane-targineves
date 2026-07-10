@@ -86,6 +86,8 @@ export interface Card {
   recurringType?: RecurringType | null
   nextExecution?: string | null
   durationMinutes?: number | null
+  monthlyWeek?: number | null
+  monthlyWeekday?: number | null
   createdById: string
   createdAt: string
   updatedAt: string

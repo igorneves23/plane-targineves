@@ -46,6 +46,14 @@ const WEEKDAYS = [
   { value: 6, label: 'Sábado' },
 ]
 
+const MONTHLY_WEEKS = [
+  { value: 1, label: 'Primeira' },
+  { value: 2, label: 'Segunda' },
+  { value: 3, label: 'Terceira' },
+  { value: 4, label: 'Quarta' },
+  { value: -1, label: 'Última' },
+]
+
 interface Props { card: Card; onClose: () => void }
 
 export function CardModal({ card: initialCard, onClose }: Props) {
@@ -144,6 +152,37 @@ export function CardModal({ card: initialCard, onClose }: Props) {
     d.setHours(time.getHours(), time.getMinutes(), 0, 0)
     if (diff === 0 && d.getTime() < now.getTime()) d.setDate(d.getDate() + 7)
     return d.toISOString()
+  }
+
+  // Calcula o Nº dia-da-semana de um mês (ex: 2ª segunda-feira de março).
+  // nth: 1-4 = primeira..quarta ocorrência; -1 = última ocorrência do mês.
+  function nthWeekdayOfMonth(year: number, month: number, weekday: number, nth: number): Date {
+    if (nth === -1) {
+      const last = new Date(year, month + 1, 0)
+      const diff = (last.getDay() - weekday + 7) % 7
+      last.setDate(last.getDate() - diff)
+      return last
+    }
+    const first = new Date(year, month, 1)
+    const diff = (weekday - first.getDay() + 7) % 7
+    const day = 1 + diff + (nth - 1) * 7
+    return new Date(year, month, day)
+  }
+
+  function nextMonthlyByWeekday(existingIso: string | null | undefined, week: number, weekday: number): string {
+    const now = new Date()
+    const time = existingIso ? new Date(existingIso) : now
+    let month = now.getMonth()
+    let year = now.getFullYear()
+    let candidate = nthWeekdayOfMonth(year, month, weekday, week)
+    candidate.setHours(time.getHours(), time.getMinutes(), 0, 0)
+    if (candidate.getTime() < now.getTime()) {
+      month += 1
+      if (month > 11) { month = 0; year += 1 }
+      candidate = nthWeekdayOfMonth(year, month, weekday, week)
+      candidate.setHours(time.getHours(), time.getMinutes(), 0, 0)
+    }
+    return candidate.toISOString()
   }
 
   return (
@@ -409,6 +448,60 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                           <option key={w.value} value={w.value}>{w.label}</option>
                         ))}
                       </select>
+                    </div>
+                  )}
+                  {card.recurringType === 'MONTHLY' && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-xs text-tx3 block mb-1">Semana do mês</label>
+                        <select
+                          value={card.monthlyWeek ?? ''}
+                          disabled={locked}
+                          onChange={(e) => {
+                            const week = Number(e.target.value)
+                            const weekday = card.monthlyWeekday ?? 1
+                            patch({
+                              monthlyWeek: week,
+                              monthlyWeekday: weekday,
+                              nextExecution: nextMonthlyByWeekday(card.nextExecution, week, weekday),
+                            } as Partial<Card>)
+                          }}
+                          className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-40"
+                        >
+                          <option value="">Selecionar...</option>
+                          {MONTHLY_WEEKS.map((w) => (
+                            <option key={w.value} value={w.value}>{w.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs text-tx3 block mb-1">Dia da semana</label>
+                        <select
+                          value={card.monthlyWeekday ?? ''}
+                          disabled={locked}
+                          onChange={(e) => {
+                            const weekday = Number(e.target.value)
+                            const week = card.monthlyWeek ?? 1
+                            patch({
+                              monthlyWeek: week,
+                              monthlyWeekday: weekday,
+                              nextExecution: nextMonthlyByWeekday(card.nextExecution, week, weekday),
+                            } as Partial<Card>)
+                          }}
+                          className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-40"
+                        >
+                          <option value="">Selecionar...</option>
+                          {WEEKDAYS.map((w) => (
+                            <option key={w.value} value={w.value}>{w.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      {card.monthlyWeek != null && card.monthlyWeekday != null && (
+                        <p className="col-span-2 text-[11px] text-tx3">
+                          Repete: {MONTHLY_WEEKS.find((w) => w.value === card.monthlyWeek)?.label.toLowerCase()}{' '}
+                          {WEEKDAYS.find((w) => w.value === card.monthlyWeekday)?.label.toLowerCase()} de cada mês
+                        </p>
+                      )}
                     </div>
                   )}
                   <div>
