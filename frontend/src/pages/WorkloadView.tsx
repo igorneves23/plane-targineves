@@ -19,6 +19,12 @@ function formatHours(minutes: number): string {
 
 const BAR_COLORS = ['#6366f1', '#3b82f6', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#a855f7']
 
+// Escala fixa da barra: 40h/semana (jornada cheia), não o maior valor do
+// grupo — assim dá pra comparar visualmente quanto cada um usou desse teto.
+const SCALE_HOURS = 40
+const SCALE_MINUTES = SCALE_HOURS * 60
+const SCALE_TICKS = [0, 10, 20, 30, 40]
+
 export default function WorkloadView() {
   const [entries, setEntries] = useState<WorkloadEntry[]>([])
   const [loading, setLoading] = useState(true)
@@ -36,9 +42,6 @@ export default function WorkloadView() {
       setLoading(false)
     })
   }, [user])
-
-  const observedMax = Math.max(0, ...entries.map((e) => e.minutes))
-  const scale = Math.max(observedMax, 8 * 60) // referência mínima de 8h para a barra não parecer cheia à toa
 
   return (
     <div className="flex h-screen bg-bg0 text-tx1 overflow-hidden">
@@ -67,9 +70,30 @@ export default function WorkloadView() {
               </div>
             ) : (
               <div className="space-y-3">
+                {/* Régua da escala de 40h — alinhada com a área da barra de cada linha */}
+                <div className="flex items-center gap-3 px-4">
+                  <div className="w-7 shrink-0" />
+                  <div className="flex-1 min-w-0 relative h-4">
+                    {SCALE_TICKS.map((h) => (
+                      <span
+                        key={h}
+                        className={clsx(
+                          'absolute text-[10px] text-tx3',
+                          h === 0 ? 'left-0' : h === SCALE_HOURS ? 'right-0' : '-translate-x-1/2'
+                        )}
+                        style={h > 0 && h < SCALE_HOURS ? { left: `${(h / SCALE_HOURS) * 100}%` } : undefined}
+                      >
+                        {h}h
+                      </span>
+                    ))}
+                  </div>
+                  <div className="w-4 shrink-0" />
+                </div>
+
                 {entries.map((entry, i) => {
-                  const widthPct = Math.min(100, (entry.minutes / scale) * 100)
-                  const barColor = BAR_COLORS[i % BAR_COLORS.length]
+                  const overCapacity = entry.minutes > SCALE_MINUTES
+                  const widthPct = Math.min(100, (entry.minutes / SCALE_MINUTES) * 100)
+                  const barColor = overCapacity ? '#ef4444' : BAR_COLORS[i % BAR_COLORS.length]
                   const expanded = expandedId === entry.user.id
 
                   return (
@@ -82,12 +106,20 @@ export default function WorkloadView() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1.5">
                             <span className="text-sm font-medium text-tx1 truncate">{entry.user.name}</span>
-                            <span className="text-sm font-semibold text-tx1 shrink-0 ml-2">
+                            <span className={clsx('text-sm font-semibold shrink-0 ml-2', overCapacity ? 'text-red-400' : 'text-tx1')}>
                               {formatHours(entry.minutes)}
                               <span className="text-tx3 font-normal"> /semana</span>
                             </span>
                           </div>
-                          <div className="h-2 bg-bdr/5 rounded-full overflow-hidden">
+                          <div className="relative h-2 bg-bdr/5 rounded-full overflow-hidden">
+                            {/* Marcações de 10h/20h/30h dentro da própria barra */}
+                            {SCALE_TICKS.slice(1, -1).map((h) => (
+                              <div
+                                key={h}
+                                className="absolute top-0 bottom-0 w-px bg-bg0/40"
+                                style={{ left: `${(h / SCALE_HOURS) * 100}%` }}
+                              />
+                            ))}
                             <div
                               className="h-full rounded-full transition-all"
                               style={{ width: `${widthPct}%`, backgroundColor: barColor }}
