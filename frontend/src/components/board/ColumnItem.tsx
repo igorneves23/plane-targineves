@@ -20,16 +20,23 @@ interface Props {
   // Colunas calculadas na hora (dia da semana sem coluna própria no quadro)
   // não podem ser renomeadas, excluídas, arrastadas nem receber cartão novo.
   readOnly?: boolean
+  // Coluna representa um dia da semana (nome bate com um dia) — começa
+  // aberta na visualização de linha do tempo em vez de lista.
+  isWeekdayColumn?: boolean
+  // Esta coluna representa o dia de hoje — mostra a linha do horário atual.
+  isToday?: boolean
 }
 
-export function ColumnItem({ column, onCardClick, boardColor, visitingCards = [], readOnly = false }: Props) {
+export function ColumnItem({
+  column, onCardClick, boardColor, visitingCards = [], readOnly = false, isWeekdayColumn = false, isToday = false,
+}: Props) {
   const [adding, setAdding] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [editing, setEditing] = useState(false)
   const [colTitle, setColTitle] = useState(column.title)
   const [collapsed, setCollapsed] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [viewMode, setViewMode] = useState<'list' | 'timeline'>('list')
+  const [viewMode, setViewMode] = useState<'list' | 'timeline'>(isWeekdayColumn ? 'timeline' : 'list')
   const { createCard, updateColumn, deleteColumn } = useBoardStore()
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -166,6 +173,7 @@ export function ColumnItem({ column, onCardClick, boardColor, visitingCards = []
                 cards={[...column.cards.filter(hasTimelineSlot), ...visitingCards.filter(hasTimelineSlot)]}
                 onCardClick={onCardClick}
                 getColor={(c) => (c as WeeklyCard).board?.color ?? boardColor}
+                showNowLine={isToday}
               />
               {(column.cards.some((c) => !hasTimelineSlot(c)) || visitingCards.some((c) => !hasTimelineSlot(c))) && (
                 <div className="mt-3 pt-3 border-t border-bdr/10 space-y-2">

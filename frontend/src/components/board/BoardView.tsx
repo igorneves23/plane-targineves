@@ -58,6 +58,7 @@ export function BoardView({ board }: Props) {
   const visitingCards = board.visitingCards ?? []
   const visitingCardsFor = (weekday: number): WeeklyCard[] => visitingCards.filter((c) => c.weekday === weekday)
   const virtualColumns = buildVirtualColumns(board)
+  const todayWeekday = new Date().getDay()
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -113,26 +114,36 @@ export function BoardView({ board }: Props) {
       <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={onDragStart} onDragOver={onDragOver} onDragEnd={onDragEnd}>
         <SortableContext items={board.columns.map((c) => c.id)} strategy={horizontalListSortingStrategy}>
           <div className="flex-1 min-h-0 flex gap-4 overflow-x-auto pb-4 pt-2 px-6">
-            {board.columns.map((col) => (
-              <ColumnItem
-                key={col.id}
-                column={col}
-                onCardClick={setActiveCard}
-                boardColor={board.color}
-                visitingCards={visitingCardsFor(weekdayOfColumn(col.title))}
-              />
-            ))}
+            {board.columns.map((col) => {
+              const weekday = weekdayOfColumn(col.title)
+              return (
+                <ColumnItem
+                  key={col.id}
+                  column={col}
+                  onCardClick={setActiveCard}
+                  boardColor={board.color}
+                  visitingCards={visitingCardsFor(weekday)}
+                  isWeekdayColumn={weekday !== -1}
+                  isToday={weekday === todayWeekday}
+                />
+              )
+            })}
 
-            {virtualColumns.map((col) => (
-              <ColumnItem
-                key={col.id}
-                column={col}
-                onCardClick={setActiveCard}
-                boardColor={board.color}
-                visitingCards={visitingCardsFor(weekdayOfColumn(col.title))}
-                readOnly
-              />
-            ))}
+            {virtualColumns.map((col) => {
+              const weekday = weekdayOfColumn(col.title)
+              return (
+                <ColumnItem
+                  key={col.id}
+                  column={col}
+                  onCardClick={setActiveCard}
+                  boardColor={board.color}
+                  visitingCards={visitingCardsFor(weekday)}
+                  isWeekdayColumn
+                  isToday={weekday === todayWeekday}
+                  readOnly
+                />
+              )
+            })}
 
             <div className="w-72 shrink-0">
               {addingCol ? (

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { CheckSquare, Clock, MessageSquare } from 'lucide-react'
 import { Card } from '../../types'
@@ -12,6 +12,9 @@ interface Props {
   endHour?: number
   pxPerHour?: number
   getColor?: (card: Card) => string | null | undefined
+  // Mostra a linha vermelha da hora atual — só faz sentido passar true
+  // quando esta linha do tempo representa o dia de hoje.
+  showNowLine?: boolean
 }
 
 // Converte #rrggbb em rgba(...) com a opacidade informada (aceita também formatos curtos #rgb)
@@ -112,11 +115,25 @@ interface HoverState {
 
 const TOOLTIP_WIDTH = 260
 
-export function DayTimeline({ cards, onCardClick, startHour = 6, endHour = 23, pxPerHour = 48, getColor }: Props) {
+export function DayTimeline({ cards, onCardClick, startHour = 6, endHour = 23, pxPerHour = 48, getColor, showNowLine }: Props) {
   const positioned = layoutCards(cards)
   const totalHeight = (endHour - startHour) * pxPerHour
   const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => startHour + i)
   const [hovered, setHovered] = useState<HoverState | null>(null)
+
+  // Recalcula a cada minuto pra linha do "agora" ir andando sem precisar recarregar a página.
+  const [, forceTick] = useState(0)
+  useEffect(() => {
+    if (!showNowLine) return
+    const id = setInterval(() => forceTick((t) => t + 1), 60000)
+    return () => clearInterval(id)
+  }, [showNowLine])
+
+  const now = new Date()
+  const nowMin = now.getHours() * 60 + now.getMinutes()
+  const nowTop = showNowLine && nowMin >= startHour * 60 && nowMin <= endHour * 60
+    ? ((nowMin - startHour * 60) / 60) * pxPerHour
+    : null
 
   function handleEnter(e: React.MouseEvent<HTMLElement>, item: PositionedCard) {
     const rect = e.currentTarget.getBoundingClientRect()
@@ -150,6 +167,13 @@ export function DayTimeline({ cards, onCardClick, startHour = 6, endHour = 23, p
             style={{ top: (h - startHour) * pxPerHour }}
           />
         ))}
+
+        {nowTop !== null && (
+          <div className="absolute left-0 right-0 z-20 pointer-events-none" style={{ top: nowTop }}>
+            <div className="absolute -left-1 -top-1 w-2 h-2 rounded-full bg-red-500" />
+            <div className="h-px bg-red-500" />
+          </div>
+        )}
 
         {positioned.map((item) => {
           const { card, start, durationMin, col, totalCols } = item
