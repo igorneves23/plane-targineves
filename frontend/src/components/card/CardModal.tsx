@@ -183,14 +183,6 @@ export function CardModal({ card: initialCard, onClose }: Props) {
           </div>
           <div className="flex items-center gap-1">
             {saving && <span className="text-xs text-tx3 animate-pulse">Salvando...</span>}
-            <button
-              onClick={handleDelete}
-              disabled={locked}
-              title={locked ? 'Apenas o administrador pode excluir este cartão' : undefined}
-              className="p-2 rounded-lg hover:bg-red-500/10 text-tx3 hover:text-red-400 transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-tx3 disabled:cursor-not-allowed"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
             <button onClick={onClose} className="p-2 rounded-lg hover:bg-bdr/10 text-tx3 hover:text-tx1 transition-colors">
               <X className="w-4 h-4" />
             </button>
@@ -434,6 +426,19 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* Excluir — isolado do botão de fechar (X) para evitar clique acidental */}
+            <div className="pt-2 border-t border-bdr/5">
+              <button
+                onClick={handleDelete}
+                disabled={locked}
+                title={locked ? 'Apenas o administrador pode excluir este cartão' : undefined}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs text-tx3 hover:bg-red-500/10 hover:text-red-400 transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-tx3 disabled:cursor-not-allowed"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Excluir cartão
+              </button>
             </div>
           </div>
         </div>
