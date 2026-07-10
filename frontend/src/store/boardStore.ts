@@ -10,7 +10,7 @@ interface BoardState {
   loading: boolean
   fetchBoards: () => Promise<void>
   fetchBoard: (id: string) => Promise<void>
-  createBoard: (data: { title: string; description?: string; color?: string }) => Promise<Board>
+  createBoard: (data: { title: string; description?: string; color?: string; responsibleId?: string | null }) => Promise<Board>
   updateBoard: (id: string, data: Partial<Board>) => Promise<void>
   deleteBoard: (id: string) => Promise<void>
   createColumn: (boardId: string, title: string) => Promise<void>

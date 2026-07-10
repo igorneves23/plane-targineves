@@ -6,25 +6,28 @@ import { Sidebar } from '../components/layout/Sidebar'
 import { Topbar } from '../components/layout/Topbar'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
-import { Board } from '../types'
+import { Avatar } from '../components/ui/Avatar'
+import { Board, User } from '../types'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { BOARD_COLORS as COLORS } from '../constants/colors'
+import api from '../services/api'
 
-const emptyForm = { title: '', description: '', color: COLORS[0] }
+const emptyForm = { title: '', description: '', color: COLORS[0], responsibleId: '' }
 
 // ── Definido FORA do Dashboard para evitar remontagem a cada render ──────────
 interface BoardFormModalProps {
   modalTitle: string
-  form: { title: string; description: string; color: string }
-  onFormChange: (f: { title: string; description: string; color: string }) => void
+  form: { title: string; description: string; color: string; responsibleId: string }
+  onFormChange: (f: { title: string; description: string; color: string; responsibleId: string }) => void
   onSubmit: (e: React.FormEvent) => void
   onClose: () => void
   submitting: boolean
   isEditing: boolean
+  users: User[]
 }
 
-function BoardFormModal({ modalTitle, form, onFormChange, onSubmit, onClose, submitting, isEditing }: BoardFormModalProps) {
+function BoardFormModal({ modalTitle, form, onFormChange, onSubmit, onClose, submitting, isEditing, users }: BoardFormModalProps) {
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-bg1 border border-bdr/10 rounded-2xl p-6 w-full max-w-md">
@@ -48,6 +51,19 @@ function BoardFormModal({ modalTitle, form, onFormChange, onSubmit, onClose, sub
             onChange={(e) => onFormChange({ ...form, description: e.target.value })}
             placeholder="Descreva o objetivo do quadro"
           />
+          <div>
+            <label className="block text-sm font-medium text-tx2 mb-2">Responsável (opcional)</label>
+            <select
+              value={form.responsibleId}
+              onChange={(e) => onFormChange({ ...form, responsibleId: e.target.value })}
+              className="w-full px-3 py-2.5 bg-bg2 border border-bdr/10 rounded-lg text-tx1 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500"
+            >
+              <option value="">Sem responsável</option>
+              {users.map((u) => (
+                <option key={u.id} value={u.id}>{u.name}</option>
+              ))}
+            </select>
+          </div>
           <div>
             <label className="block text-sm font-medium text-tx2 mb-2">Cor</label>
             <div className="flex gap-2 flex-wrap">
@@ -80,20 +96,27 @@ export default function Dashboard() {
   const [editingBoard, setEditingBoard] = useState<Board | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [submitting, setSubmitting] = useState(false)
+  const [users, setUsers] = useState<User[]>([])
 
   useEffect(() => { fetchBoards() }, [fetchBoards])
+  useEffect(() => { api.get<User[]>('/users').then((r) => setUsers(r.data)) }, [])
 
   function openEdit(e: React.MouseEvent, board: Board) {
     e.stopPropagation()
     setEditingBoard(board)
-    setForm({ title: board.title, description: board.description ?? '', color: board.color })
+    setForm({
+      title: board.title,
+      description: board.description ?? '',
+      color: board.color,
+      responsibleId: board.responsibleId ?? '',
+    })
   }
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
     setSubmitting(true)
     try {
-      const board = await createBoard(form)
+      const board = await createBoard({ ...form, responsibleId: form.responsibleId || null })
       setShowCreate(false)
       setForm(emptyForm)
       navigate(`/board/${board.id}`)
@@ -107,7 +130,7 @@ export default function Dashboard() {
     if (!editingBoard) return
     setSubmitting(true)
     try {
-      await updateBoard(editingBoard.id, form)
+      await updateBoard(editingBoard.id, { ...form, responsibleId: form.responsibleId || null })
       setEditingBoard(null)
     } finally {
       setSubmitting(false)
@@ -136,6 +159,7 @@ export default function Dashboard() {
               onClose={() => { setShowCreate(false); setForm(emptyForm) }}
               submitting={submitting}
               isEditing={false}
+              users={users}
             />
           )}
           {editingBoard && (
@@ -147,6 +171,7 @@ export default function Dashboard() {
               onClose={() => setEditingBoard(null)}
               submitting={submitting}
               isEditing={true}
+              users={users}
             />
           )}
 
@@ -202,9 +227,17 @@ export default function Dashboard() {
                   {board.description && (
                     <p className="text-xs text-tx3 truncate mb-3">{board.description}</p>
                   )}
-                  <div className="flex items-center gap-1 text-xs text-tx3">
-                    <Clock className="w-3 h-3" />
-                    {format(new Date(board.updatedAt), "dd 'de' MMM", { locale: ptBR })}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1 text-xs text-tx3">
+                      <Clock className="w-3 h-3" />
+                      {format(new Date(board.updatedAt), "dd 'de' MMM", { locale: ptBR })}
+                    </div>
+                    {board.responsible && (
+                      <div className="flex items-center gap-1.5 min-w-0" title={board.responsible.name}>
+                        <Avatar name={board.responsible.name} src={board.responsible.avatar} size="xs" />
+                        <span className="text-xs text-tx3 truncate">{board.responsible.name.split(' ')[0]}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

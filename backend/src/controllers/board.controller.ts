@@ -7,6 +7,7 @@ const boardSchema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
   color: z.string().optional(),
+  responsibleId: z.string().optional().nullable(),
 })
 
 export async function listBoards(req: AuthRequest, res: Response) {
@@ -14,6 +15,7 @@ export async function listBoards(req: AuthRequest, res: Response) {
     orderBy: { updatedAt: 'desc' },
     include: {
       createdBy: { select: { id: true, name: true, avatar: true } },
+      responsible: { select: { id: true, name: true, avatar: true } },
       _count: { select: { columns: true } },
     },
   })
@@ -29,7 +31,10 @@ export async function createBoard(req: AuthRequest, res: Response) {
 
   const board = await prisma.board.create({
     data: { ...parsed.data, createdById: req.userId! },
-    include: { createdBy: { select: { id: true, name: true, avatar: true } } },
+    include: {
+      createdBy: { select: { id: true, name: true, avatar: true } },
+      responsible: { select: { id: true, name: true, avatar: true } },
+    },
   })
   res.status(201).json(board)
 }
@@ -39,6 +44,7 @@ export async function getBoard(req: AuthRequest, res: Response) {
     where: { id: req.params.id },
     include: {
       createdBy: { select: { id: true, name: true, avatar: true } },
+      responsible: { select: { id: true, name: true, avatar: true } },
       columns: {
         orderBy: { position: 'asc' },
         include: {
@@ -72,6 +78,10 @@ export async function updateBoard(req: AuthRequest, res: Response) {
   const board = await prisma.board.update({
     where: { id: req.params.id },
     data: parsed.data,
+    include: {
+      createdBy: { select: { id: true, name: true, avatar: true } },
+      responsible: { select: { id: true, name: true, avatar: true } },
+    },
   })
   res.json(board)
 }

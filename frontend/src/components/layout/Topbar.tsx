@@ -1,5 +1,5 @@
 import { Menu, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBoardStore } from '../../store/boardStore'
 import { useSidebar } from '../../context/SidebarContext'
@@ -7,6 +7,8 @@ import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Modal } from '../ui/Modal'
 import { BOARD_COLORS as COLORS } from '../../constants/colors'
+import api from '../../services/api'
+import { User } from '../../types'
 
 interface Props { title?: string }
 
@@ -15,20 +17,27 @@ export function Topbar({ title }: Props) {
   const [name, setName] = useState('')
   const [desc, setDesc] = useState('')
   const [color, setColor] = useState(COLORS[0])
+  const [responsibleId, setResponsibleId] = useState('')
   const [loading, setLoading] = useState(false)
+  const [users, setUsers] = useState<User[]>([])
   const { createBoard } = useBoardStore()
   const { setOpen: setSidebarOpen } = useSidebar()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    if (open) api.get<User[]>('/users').then((r) => setUsers(r.data))
+  }, [open])
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
     if (!name.trim()) return
     setLoading(true)
     try {
-      const board = await createBoard({ title: name.trim(), description: desc, color })
+      const board = await createBoard({ title: name.trim(), description: desc, color, responsibleId: responsibleId || null })
       setOpen(false)
       setName('')
       setDesc('')
+      setResponsibleId('')
       navigate(`/board/${board.id}`)
     } finally {
       setLoading(false)
@@ -70,6 +79,19 @@ export function Topbar({ title }: Props) {
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
           />
+          <div>
+            <label className="block text-sm font-medium text-tx2 mb-2">Responsável (opcional)</label>
+            <select
+              value={responsibleId}
+              onChange={(e) => setResponsibleId(e.target.value)}
+              className="w-full px-3 py-2.5 bg-bg2 border border-bdr/10 rounded-lg text-tx1 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500"
+            >
+              <option value="">Sem responsável</option>
+              {users.map((u) => (
+                <option key={u.id} value={u.id}>{u.name}</option>
+              ))}
+            </select>
+          </div>
           <div>
             <p className="text-sm font-medium text-tx2 mb-2">Cor</p>
             <div className="flex gap-2 flex-wrap">

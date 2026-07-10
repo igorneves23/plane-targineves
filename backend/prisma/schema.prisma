@@ -46,6 +46,7 @@ model User {
   updatedAt           DateTime  @updatedAt
 
   createdBoards       Board[]         @relation("BoardCreator")
+  responsibleBoards   Board[]         @relation("BoardResponsible")
   cardMembers         CardMember[]
   comments            Comment[]
   activities          Activity[]
@@ -57,16 +58,18 @@ model User {
 }
 
 model Board {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  color       String   @default("#6366f1")
-  createdById String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(cuid())
+  title         String
+  description   String?
+  color         String   @default("#6366f1")
+  createdById   String
+  responsibleId String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  createdBy User     @relation("BoardCreator", fields: [createdById], references: [id], onDelete: Cascade)
-  columns   Column[]
+  createdBy   User     @relation("BoardCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  responsible User?    @relation("BoardResponsible", fields: [responsibleId], references: [id], onDelete: SetNull)
+  columns     Column[]
 
   @@map("boards")
 }

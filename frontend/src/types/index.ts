@@ -133,9 +133,11 @@ export interface Board {
   description?: string | null
   color: string
   createdById: string
+  responsibleId?: string | null
   createdAt: string
   updatedAt: string
   createdBy: Pick<User, 'id' | 'name' | 'avatar'>
+  responsible?: Pick<User, 'id' | 'name' | 'avatar'> | null
   columns: Column[]
   _count?: { columns: number }
 }
