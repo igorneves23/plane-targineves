@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Plus, MoreHorizontal, Trash2, Pencil, ChevronsLeftRight, Clock, LayoutList } from 'lucide-react'
-import { Column, Card } from '../../types'
+import { Column, Card, WeeklyCard } from '../../types'
 import { CardItem } from './CardItem'
+import { VisitingCardTile } from './VisitingCardTile'
 import { DayTimeline, hasTimelineSlot } from './DayTimeline'
 import { useBoardStore } from '../../store/boardStore'
 import clsx from 'clsx'
@@ -12,9 +13,16 @@ interface Props {
   column: Column
   onCardClick: (card: Card) => void
   boardColor?: string
+  // Cards que moram em outro quadro, mas cujo dia da semana bate com o
+  // título desta coluna — mesmo registro, só aparecem juntos aqui (ver
+  // getVisitingCards). Não são arrastáveis nem contam pra posição da coluna.
+  visitingCards?: WeeklyCard[]
+  // Colunas calculadas na hora (dia da semana sem coluna própria no quadro)
+  // não podem ser renomeadas, excluídas, arrastadas nem receber cartão novo.
+  readOnly?: boolean
 }
 
-export function ColumnItem({ column, onCardClick, boardColor }: Props) {
+export function ColumnItem({ column, onCardClick, boardColor, visitingCards = [], readOnly = false }: Props) {
   const [adding, setAdding] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [editing, setEditing] = useState(false)
@@ -27,7 +35,9 @@ export function ColumnItem({ column, onCardClick, boardColor }: Props) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: column.id,
     data: { type: 'column' },
+    disabled: readOnly,
   })
+  const dragProps = readOnly ? {} : { ...attributes, ...listeners }
 
   async function handleAddCard(e: React.FormEvent) {
     e.preventDefault()
@@ -62,8 +72,7 @@ export function ColumnItem({ column, onCardClick, boardColor }: Props) {
             ? 'flex-col h-full bg-bg1 border border-bdr/5 justify-start pt-4 pb-4'
             : 'bg-bg1 border border-bdr/5 border-b-0 rounded-b-none'
         )}
-        {...attributes}
-        {...listeners}
+        {...dragProps}
       >
         {collapsed ? (
           <>
@@ -71,7 +80,7 @@ export function ColumnItem({ column, onCardClick, boardColor }: Props) {
               {column.title}
             </span>
             <span className="text-xs text-tx3 bg-bdr/5 px-1.5 py-0.5 rounded-full">
-              {column.cards.length}
+              {column.cards.length + visitingCards.length}
             </span>
             <button
               onClick={() => setCollapsed(false)}
@@ -97,7 +106,7 @@ export function ColumnItem({ column, onCardClick, boardColor }: Props) {
             )}
 
             <span className="text-xs font-medium text-tx3 bg-bdr/5 px-2 py-0.5 rounded-full shrink-0">
-              {column.cards.length}
+              {column.cards.length + visitingCards.length}
             </span>
 
             <button
@@ -115,6 +124,7 @@ export function ColumnItem({ column, onCardClick, boardColor }: Props) {
               <ChevronsLeftRight className="w-3.5 h-3.5" />
             </button>
 
+            {!readOnly && (
             <div className="relative shrink-0">
               <button
                 onClick={() => setMenuOpen((v) => !v)}
@@ -142,6 +152,7 @@ export function ColumnItem({ column, onCardClick, boardColor }: Props) {
                 </>
               )}
             </div>
+            )}
           </>
         )}
       </div>
@@ -152,11 +163,11 @@ export function ColumnItem({ column, onCardClick, boardColor }: Props) {
           {viewMode === 'timeline' ? (
             <div className="flex-1 overflow-y-auto p-2 min-h-[40px]">
               <DayTimeline
-                cards={column.cards.filter(hasTimelineSlot)}
+                cards={[...column.cards.filter(hasTimelineSlot), ...visitingCards.filter(hasTimelineSlot)]}
                 onCardClick={onCardClick}
-                getColor={() => boardColor}
+                getColor={(c) => (c as WeeklyCard).board?.color ?? boardColor}
               />
-              {column.cards.some((c) => !hasTimelineSlot(c)) && (
+              {(column.cards.some((c) => !hasTimelineSlot(c)) || visitingCards.some((c) => !hasTimelineSlot(c))) && (
                 <div className="mt-3 pt-3 border-t border-bdr/10 space-y-2">
                   <p className="text-[10px] text-tx3 uppercase tracking-wider px-1">Sem horário definido</p>
                   <SortableContext
@@ -167,6 +178,9 @@ export function ColumnItem({ column, onCardClick, boardColor }: Props) {
                       <CardItem key={card.id} card={card} onClick={() => onCardClick(card)} />
                     ))}
                   </SortableContext>
+                  {visitingCards.filter((c) => !hasTimelineSlot(c)).map((card) => (
+                    <VisitingCardTile key={card.id} card={card} onClick={() => onCardClick(card)} />
+                  ))}
                 </div>
               )}
             </div>
@@ -177,9 +191,13 @@ export function ColumnItem({ column, onCardClick, boardColor }: Props) {
                   <CardItem key={card.id} card={card} onClick={() => onCardClick(card)} />
                 ))}
               </SortableContext>
+              {visitingCards.map((card) => (
+                <VisitingCardTile key={card.id} card={card} onClick={() => onCardClick(card)} />
+              ))}
             </div>
           )}
 
+          {!readOnly && (
           <div className="p-2 pt-0">
             {adding ? (
               <form onSubmit={handleAddCard} className="space-y-2 p-2 bg-bg2/60 rounded-xl border border-bdr/5">
@@ -211,6 +229,7 @@ export function ColumnItem({ column, onCardClick, boardColor }: Props) {
               </button>
             )}
           </div>
+          )}
         </div>
       )}
     </div>
