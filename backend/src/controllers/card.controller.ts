@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { prisma } from '../lib/prisma'
 import { AuthRequest } from '../middlewares/auth'
 import { syncCardMirrors } from '../lib/mirror'
+import { assertCardEditable, assertCardFieldsEditable } from '../lib/cardLock'
 
 const cardSchema = z.object({
   columnId: z.string(),
@@ -32,7 +33,7 @@ const cardInclude = {
     include: { user: { select: { id: true, name: true, avatar: true } } },
   },
   attachments: true,
-  createdBy: { select: { id: true, name: true, avatar: true } },
+  createdBy: { select: { id: true, name: true, avatar: true, role: true } },
 }
 
 export async function createCard(req: AuthRequest, res: Response) {
@@ -84,6 +85,8 @@ export async function updateCard(req: AuthRequest, res: Response) {
     return
   }
 
+  if (!(await assertCardFieldsEditable(req, res, req.params.id, Object.keys(parsed.data)))) return
+
   const card = await prisma.card.update({
     where: { id: req.params.id },
     data: {
@@ -104,6 +107,7 @@ export async function updateCard(req: AuthRequest, res: Response) {
 }
 
 export async function deleteCard(req: AuthRequest, res: Response) {
+  if (!(await assertCardEditable(req, res, req.params.id))) return
   await prisma.card.delete({ where: { id: req.params.id } })
   res.status(204).send()
 }
@@ -118,6 +122,8 @@ export async function moveCard(req: AuthRequest, res: Response) {
     res.status(400).json({ error: parsed.error.flatten() })
     return
   }
+
+  if (!(await assertCardEditable(req, res, req.params.id))) return
 
   const card = await prisma.card.update({
     where: { id: req.params.id },
@@ -139,6 +145,8 @@ export async function addMember(req: AuthRequest, res: Response) {
     return
   }
 
+  if (!(await assertCardEditable(req, res, req.params.id))) return
+
   await prisma.cardMember.upsert({
     where: { cardId_userId: { cardId: req.params.id, userId } },
     update: {},
@@ -149,6 +157,7 @@ export async function addMember(req: AuthRequest, res: Response) {
 }
 
 export async function removeMember(req: AuthRequest, res: Response) {
+  if (!(await assertCardEditable(req, res, req.params.id))) return
   await prisma.cardMember.deleteMany({
     where: { cardId: req.params.id, userId: req.params.userId },
   })

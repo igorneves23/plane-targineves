@@ -53,6 +53,7 @@ export async function getBoard(req: AuthRequest, res: Response) {
             include: {
               members: { include: { user: { select: { id: true, name: true, avatar: true } } } },
               labels: { include: { label: true } },
+              createdBy: { select: { id: true, role: true } },
               _count: { select: { checklist: true, comments: true } },
             },
           },

@@ -6,9 +6,9 @@ import { Card, ChecklistItem } from '../../types'
 import { Avatar } from '../ui/Avatar'
 import clsx from 'clsx'
 
-interface Props { card: Card; onUpdate: (card: Card) => void }
+interface Props { card: Card; onUpdate: (card: Card) => void; locked?: boolean }
 
-export function ChecklistSection({ card, onUpdate }: Props) {
+export function ChecklistSection({ card, onUpdate, locked }: Props) {
   const [adding, setAdding] = useState(false)
   const [newItem, setNewItem] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -69,8 +69,9 @@ export function ChecklistSection({ card, onUpdate }: Props) {
             <input
               type="checkbox"
               checked={item.completed}
+              disabled={locked}
               onChange={() => toggleItem(item)}
-              className="accent-brand-500 w-4 h-4 shrink-0 cursor-pointer mt-0.5"
+              className="accent-brand-500 w-4 h-4 shrink-0 cursor-pointer mt-0.5 disabled:opacity-40 disabled:cursor-not-allowed"
             />
 
             {editingId === item.id ? (
@@ -89,7 +90,7 @@ export function ChecklistSection({ card, onUpdate }: Props) {
             ) : (
               /* ── Modo visualização ── */
               <span
-                onDoubleClick={() => !item.completed && startEdit(item)}
+                onDoubleClick={() => !locked && !item.completed && startEdit(item)}
                 className={clsx(
                   'text-sm flex-1 leading-snug',
                   item.completed ? 'line-through text-tx3' : 'text-tx1'
@@ -102,9 +103,10 @@ export function ChecklistSection({ card, onUpdate }: Props) {
             {/* Responsável pelo item */}
             <div className="relative shrink-0">
               <button
-                onClick={() => setAssigneePickerFor(assigneePickerFor === item.id ? null : item.id)}
+                onClick={() => !locked && setAssigneePickerFor(assigneePickerFor === item.id ? null : item.id)}
                 title={item.assignee ? item.assignee.name : 'Atribuir responsável'}
-                className="block"
+                disabled={locked}
+                className="block disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {item.assignee ? (
                   <Avatar name={item.assignee.name} src={item.assignee.avatar} size="xs" />
@@ -147,24 +149,26 @@ export function ChecklistSection({ card, onUpdate }: Props) {
             </div>
 
             {/* Ações (aparecem no hover) */}
-            <div className="flex items-center gap-0.5 opacity-0 group-hover/item:opacity-100 transition-all shrink-0">
-              {!item.completed && editingId !== item.id && (
+            {!locked && (
+              <div className="flex items-center gap-0.5 opacity-0 group-hover/item:opacity-100 transition-all shrink-0">
+                {!item.completed && editingId !== item.id && (
+                  <button
+                    onClick={() => startEdit(item)}
+                    className="p-1 rounded hover:bg-bdr/10 text-tx3 hover:text-tx1 transition-colors"
+                    title="Editar item"
+                  >
+                    <Pencil className="w-3 h-3" />
+                  </button>
+                )}
                 <button
-                  onClick={() => startEdit(item)}
-                  className="p-1 rounded hover:bg-bdr/10 text-tx3 hover:text-tx1 transition-colors"
-                  title="Editar item"
+                  onClick={() => deleteItem(item.id)}
+                  className="p-1 rounded hover:bg-red-500/10 text-tx3 hover:text-red-400 transition-colors"
+                  title="Excluir item"
                 >
-                  <Pencil className="w-3 h-3" />
+                  <Trash2 className="w-3 h-3" />
                 </button>
-              )}
-              <button
-                onClick={() => deleteItem(item.id)}
-                className="p-1 rounded hover:bg-red-500/10 text-tx3 hover:text-red-400 transition-colors"
-                title="Excluir item"
-              >
-                <Trash2 className="w-3 h-3" />
-              </button>
-            </div>
+              </div>
+            )}
           </div>
 
           {item.completed && item.completedBy && (
@@ -176,7 +180,7 @@ export function ChecklistSection({ card, onUpdate }: Props) {
         </div>
       ))}
 
-      {adding ? (
+      {!locked && (adding ? (
         <form onSubmit={addItem} className="flex gap-2 pt-1">
           <input
             value={newItem}
@@ -200,7 +204,7 @@ export function ChecklistSection({ card, onUpdate }: Props) {
         >
           <Plus className="w-3 h-3" /> Adicionar item
         </button>
-      )}
+      ))}
     </div>
   )
 }

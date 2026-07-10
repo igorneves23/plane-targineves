@@ -5,9 +5,9 @@ import { Card, Label } from '../../types'
 import { Badge } from '../ui/Badge'
 import { BOARD_COLORS } from '../../constants/colors'
 
-interface Props { card: Card; onUpdate: (card: Card) => void }
+interface Props { card: Card; onUpdate: (card: Card) => void; locked?: boolean }
 
-export function LabelsSection({ card, onUpdate }: Props) {
+export function LabelsSection({ card, onUpdate, locked }: Props) {
   const [labels, setLabels] = useState<Label[]>([])
   const [open, setOpen] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -85,6 +85,7 @@ export function LabelsSection({ card, onUpdate }: Props) {
         ))}
       </div>
 
+      {!locked && (
       <div className="relative">
         <button
           onClick={() => setOpen((o) => !o)}
@@ -202,6 +203,7 @@ export function LabelsSection({ card, onUpdate }: Props) {
           </>
         )}
       </div>
+      )}
     </div>
   )
 }

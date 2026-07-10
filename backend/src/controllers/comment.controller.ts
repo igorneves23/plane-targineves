@@ -2,6 +2,7 @@ import { Response } from 'express'
 import { z } from 'zod'
 import { prisma } from '../lib/prisma'
 import { AuthRequest } from '../middlewares/auth'
+import { assertCardEditable } from '../lib/cardLock'
 
 export async function createComment(req: AuthRequest, res: Response) {
   const schema = z.object({ cardId: z.string(), content: z.string().min(1) })
@@ -10,6 +11,8 @@ export async function createComment(req: AuthRequest, res: Response) {
     res.status(400).json({ error: parsed.error.flatten() })
     return
   }
+
+  if (!(await assertCardEditable(req, res, parsed.data.cardId))) return
 
   const comment = await prisma.comment.create({
     data: { ...parsed.data, userId: req.userId! },
@@ -34,6 +37,8 @@ export async function deleteComment(req: AuthRequest, res: Response) {
     res.status(403).json({ error: 'Sem permissão' })
     return
   }
+
+  if (!(await assertCardEditable(req, res, comment.cardId))) return
 
   await prisma.comment.delete({ where: { id: req.params.id } })
   res.status(204).send()

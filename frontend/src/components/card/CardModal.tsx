@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import {
   X, Trash2, Calendar, Flag, RotateCcw, Users, Tag, Paperclip,
-  MessageSquare, CheckSquare, AlignLeft, Edit3, Check
+  MessageSquare, CheckSquare, AlignLeft, Edit3, Check, Lock
 } from 'lucide-react'
 import { Card, Priority, CardStatus, RecurringType } from '../../types'
 import { cardService } from '../../services/card.service'
 import { useBoardStore } from '../../store/boardStore'
+import { useAuthStore } from '../../store/authStore'
 import { Avatar } from '../ui/Avatar'
 import { Badge } from '../ui/Badge'
 import { ChecklistSection } from './ChecklistSection'
@@ -55,6 +56,10 @@ export function CardModal({ card: initialCard, onClose }: Props) {
   const [desc, setDesc] = useState(card.description || '')
   const [saving, setSaving] = useState(false)
   const { updateCardInStore, deleteCard } = useBoardStore()
+  const { user: currentUser } = useAuthStore()
+
+  // Líder e Membro só podem mudar o status de cartões criados por um administrador
+  const locked = currentUser?.role !== 'ADMIN' && card.createdBy?.role === 'ADMIN'
 
   const [vencimentoValue, setVencimentoValue] = useState(card.dueDate ? toLocalInput(card.dueDate) : '')
   const [horarioValue, setHorarioValue] = useState(card.nextExecution ? toLocalTime(card.nextExecution) : '')
@@ -163,8 +168,11 @@ export function CardModal({ card: initialCard, onClose }: Props) {
               />
             ) : (
               <h2
-                onClick={() => setEditingTitle(true)}
-                className="text-xl font-bold text-tx1 cursor-text hover:text-brand-500 transition-colors leading-tight"
+                onClick={() => !locked && setEditingTitle(true)}
+                className={clsx(
+                  'text-xl font-bold text-tx1 transition-colors leading-tight',
+                  locked ? 'cursor-default' : 'cursor-text hover:text-brand-500'
+                )}
               >
                 {card.title}
               </h2>
@@ -175,7 +183,12 @@ export function CardModal({ card: initialCard, onClose }: Props) {
           </div>
           <div className="flex items-center gap-1">
             {saving && <span className="text-xs text-tx3 animate-pulse">Salvando...</span>}
-            <button onClick={handleDelete} className="p-2 rounded-lg hover:bg-red-500/10 text-tx3 hover:text-red-400 transition-colors">
+            <button
+              onClick={handleDelete}
+              disabled={locked}
+              title={locked ? 'Apenas o administrador pode excluir este cartão' : undefined}
+              className="p-2 rounded-lg hover:bg-red-500/10 text-tx3 hover:text-red-400 transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-tx3 disabled:cursor-not-allowed"
+            >
               <Trash2 className="w-4 h-4" />
             </button>
             <button onClick={onClose} className="p-2 rounded-lg hover:bg-bdr/10 text-tx3 hover:text-tx1 transition-colors">
@@ -183,6 +196,13 @@ export function CardModal({ card: initialCard, onClose }: Props) {
             </button>
           </div>
         </div>
+
+        {locked && (
+          <div className="mx-4 md:mx-6 mb-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs">
+            <Lock className="w-3.5 h-3.5 shrink-0" />
+            Este cartão foi criado pelo administrador — você só pode mudar o status.
+          </div>
+        )}
 
         {/* Body — stacks on mobile, side-by-side on desktop */}
         <div className="flex flex-col md:grid md:grid-cols-3 md:divide-x md:divide-bdr/5">
@@ -194,7 +214,7 @@ export function CardModal({ card: initialCard, onClose }: Props) {
               <div className="flex items-center gap-2 text-tx2 mb-2">
                 <AlignLeft className="w-4 h-4" />
                 <span className="text-sm font-medium">Descrição</span>
-                {!editingDesc && (
+                {!editingDesc && !locked && (
                   <button onClick={() => setEditingDesc(true)} className="ml-auto p-1 rounded hover:bg-bdr/10 text-tx3 hover:text-tx1 transition-colors">
                     <Edit3 className="w-3 h-3" />
                   </button>
@@ -221,8 +241,11 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                 </div>
               ) : (
                 <p
-                  onClick={() => setEditingDesc(true)}
-                  className="text-sm text-tx2 cursor-text hover:text-tx1 min-h-[2rem] leading-relaxed"
+                  onClick={() => !locked && setEditingDesc(true)}
+                  className={clsx(
+                    'text-sm text-tx2 min-h-[2rem] leading-relaxed',
+                    locked ? 'cursor-default' : 'cursor-text hover:text-tx1'
+                  )}
                 >
                   {card.description || <span className="italic text-tx3">Clique para adicionar descrição...</span>}
                 </p>
@@ -241,7 +264,7 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                   <div className="h-full bg-brand-500 rounded-full transition-all" style={{ width: `${(done / total) * 100}%` }} />
                 </div>
               )}
-              <ChecklistSection card={card} onUpdate={syncCard} />
+              <ChecklistSection card={card} onUpdate={syncCard} locked={locked} />
             </div>
 
             {/* Comments */}
@@ -250,7 +273,7 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                 <MessageSquare className="w-4 h-4" />
                 <span className="text-sm font-medium">Comentários</span>
               </div>
-              <CommentsSection card={card} onUpdate={syncCard} />
+              <CommentsSection card={card} onUpdate={syncCard} locked={locked} />
             </div>
           </div>
 
@@ -286,8 +309,9 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                   <button
                     key={p.value}
                     onClick={() => patch({ priority: p.value } as Partial<Card>)}
+                    disabled={locked}
                     className={clsx(
-                      'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-2 md:w-full md:text-left',
+                      'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-2 md:w-full md:text-left disabled:opacity-40 disabled:cursor-not-allowed',
                       card.priority === p.value ? 'bg-bdr/10 text-tx1' : 'text-tx2 hover:bg-bdr/5 hover:text-tx1'
                     )}
                   >
@@ -307,11 +331,12 @@ export function CardModal({ card: initialCard, onClose }: Props) {
               <input
                 type="datetime-local"
                 value={vencimentoValue}
+                disabled={locked}
                 onChange={(e) => {
                   setVencimentoValue(e.target.value)
                   patch({ dueDate: e.target.value ? new Date(e.target.value).toISOString() : null } as Partial<Card>)
                 }}
-                className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-40"
               />
               <div className="mt-2">
                 <label className="text-xs text-tx3 block mb-1">Duração (minutos)</label>
@@ -320,12 +345,13 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                   min={5}
                   step={5}
                   value={durationValue}
+                  disabled={locked}
                   onChange={(e) => {
                     setDurationValue(e.target.value)
                     const n = Number(e.target.value)
                     if (e.target.value && n >= 5) patch({ durationMinutes: n } as Partial<Card>)
                   }}
-                  className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-40"
                 />
               </div>
             </div>
@@ -336,7 +362,7 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                 <Users className="w-3 h-3 text-tx3" />
                 <p className="text-xs font-semibold text-tx3 uppercase tracking-wider">Responsáveis</p>
               </div>
-              <MembersSection card={card} onUpdate={syncCard} />
+              <MembersSection card={card} onUpdate={syncCard} locked={locked} />
             </div>
 
             {/* Labels */}
@@ -345,7 +371,7 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                 <Tag className="w-3 h-3 text-tx3" />
                 <p className="text-xs font-semibold text-tx3 uppercase tracking-wider">Etiquetas</p>
               </div>
-              <LabelsSection card={card} onUpdate={syncCard} />
+              <LabelsSection card={card} onUpdate={syncCard} locked={locked} />
             </div>
 
             {/* Recurrence */}
@@ -354,12 +380,13 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                 <RotateCcw className="w-3 h-3 text-tx3" />
                 <p className="text-xs font-semibold text-tx3 uppercase tracking-wider">Recorrência</p>
               </div>
-              <label className="flex items-center gap-2 mb-2 cursor-pointer">
+              <label className={clsx('flex items-center gap-2 mb-2', locked ? 'cursor-default' : 'cursor-pointer')}>
                 <input
                   type="checkbox"
                   checked={card.recurring}
+                  disabled={locked}
                   onChange={(e) => patch({ recurring: e.target.checked } as Partial<Card>)}
-                  className="accent-brand-500 w-4 h-4"
+                  className="accent-brand-500 w-4 h-4 disabled:opacity-40"
                 />
                 <span className="text-xs text-tx2">Ativar recorrência</span>
               </label>
@@ -367,8 +394,9 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                 <div className="space-y-2">
                   <select
                     value={card.recurringType || ''}
+                    disabled={locked}
                     onChange={(e) => patch({ recurringType: e.target.value as RecurringType } as Partial<Card>)}
-                    className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                    className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-40"
                   >
                     <option value="">Selecionar...</option>
                     {RECURRING_TYPES.map((r) => (
@@ -380,8 +408,9 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                       <label className="text-xs text-tx3 block mb-1">Dia da semana</label>
                       <select
                         value={card.nextExecution ? new Date(card.nextExecution).getDay() : ''}
+                        disabled={locked}
                         onChange={(e) => patch({ nextExecution: nextWeekday(card.nextExecution, Number(e.target.value)) } as Partial<Card>)}
-                        className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                        className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-40"
                       >
                         <option value="">Selecionar...</option>
                         {WEEKDAYS.map((w) => (
@@ -395,11 +424,12 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                     <input
                       type="time"
                       value={horarioValue}
+                      disabled={locked}
                       onChange={(e) => {
                         setHorarioValue(e.target.value)
                         if (e.target.value) patch({ nextExecution: combineDateTime(card.nextExecution, e.target.value) } as Partial<Card>)
                       }}
-                      className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                      className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-40"
                     />
                   </div>
                 </div>

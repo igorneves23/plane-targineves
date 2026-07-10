@@ -1,8 +1,9 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { CheckSquare, CheckCircle2, Clock, RefreshCw, MessageSquare } from 'lucide-react'
+import { CheckSquare, CheckCircle2, Clock, RefreshCw, MessageSquare, Lock } from 'lucide-react'
 import { Card } from '../../types'
 import { Avatar } from '../ui/Avatar'
+import { useAuthStore } from '../../store/authStore'
 import { format, isPast, isToday, isTomorrow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import clsx from 'clsx'
@@ -24,9 +25,13 @@ function formatDueDate(dateStr: string) {
 interface Props { card: Card; onClick: () => void }
 
 export function CardItem({ card, onClick }: Props) {
+  const { user: currentUser } = useAuthStore()
+  const locked = currentUser?.role !== 'ADMIN' && card.createdBy?.role === 'ADMIN'
+
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
     data: { type: 'card', card },
+    disabled: locked,
   })
 
   const doneItems = card.checklist?.filter((i) => i.completed).length ?? 0
@@ -64,6 +69,7 @@ export function CardItem({ card, onClick }: Props) {
         isDone ? 'text-tx3 line-through' : 'text-tx1'
       )}>
         {isDone && <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />}
+        {locked && <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />}
         {card.title}
       </p>
 

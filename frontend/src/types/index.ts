@@ -94,7 +94,7 @@ export interface Card {
   checklist: ChecklistItem[]
   comments: Comment[]
   attachments: Attachment[]
-  createdBy: Pick<User, 'id' | 'name' | 'avatar'>
+  createdBy: Pick<User, 'id' | 'name' | 'avatar' | 'role'>
   _count?: { checklist: number; comments: number }
 }
 

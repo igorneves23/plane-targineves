@@ -7,9 +7,9 @@ import { Avatar } from '../ui/Avatar'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
-interface Props { card: Card; onUpdate: (card: Card) => void }
+interface Props { card: Card; onUpdate: (card: Card) => void; locked?: boolean }
 
-export function CommentsSection({ card, onUpdate }: Props) {
+export function CommentsSection({ card, onUpdate, locked }: Props) {
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
   const { user } = useAuthStore()
@@ -35,24 +35,26 @@ export function CommentsSection({ card, onUpdate }: Props) {
   return (
     <div className="space-y-4">
       {/* Input */}
-      <form onSubmit={submit} className="flex gap-3 items-start">
-        {user && <Avatar name={user.name} src={user.avatar} size="sm" className="mt-1 shrink-0" />}
-        <div className="flex-1 flex gap-2">
-          <input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Adicionar comentário..."
-            className="flex-1 bg-bg2 border border-bdr/10 rounded-lg px-3 py-2 text-sm text-tx1 placeholder-tx3 focus:outline-none focus:ring-1 focus:ring-brand-500"
-          />
-          <button
-            type="submit"
-            disabled={!text.trim() || sending}
-            className="p-2 bg-brand-500 hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-          >
-            <Send className="w-4 h-4" />
-          </button>
-        </div>
-      </form>
+      {!locked && (
+        <form onSubmit={submit} className="flex gap-3 items-start">
+          {user && <Avatar name={user.name} src={user.avatar} size="sm" className="mt-1 shrink-0" />}
+          <div className="flex-1 flex gap-2">
+            <input
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Adicionar comentário..."
+              className="flex-1 bg-bg2 border border-bdr/10 rounded-lg px-3 py-2 text-sm text-tx1 placeholder-tx3 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            />
+            <button
+              type="submit"
+              disabled={!text.trim() || sending}
+              className="p-2 bg-brand-500 hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </div>
+        </form>
+      )}
 
       {/* List */}
       <div className="space-y-3">
@@ -65,7 +67,7 @@ export function CommentsSection({ card, onUpdate }: Props) {
                 <span className="text-xs text-tx3">
                   {format(new Date(comment.createdAt), "dd 'de' MMM 'às' HH:mm", { locale: ptBR })}
                 </span>
-                {(comment.userId === user?.id || user?.role === 'ADMIN') && (
+                {!locked && (comment.userId === user?.id || user?.role === 'ADMIN') && (
                   <button
                     onClick={() => deleteComment(comment.id)}
                     className="ml-auto opacity-0 group-hover/comment:opacity-100 p-1 rounded hover:bg-red-500/10 text-tx3 hover:text-red-400 transition-all"

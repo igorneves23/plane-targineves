@@ -4,9 +4,9 @@ import api from '../../services/api'
 import { Card, User } from '../../types'
 import { Avatar } from '../ui/Avatar'
 
-interface Props { card: Card; onUpdate: (card: Card) => void }
+interface Props { card: Card; onUpdate: (card: Card) => void; locked?: boolean }
 
-export function MembersSection({ card, onUpdate }: Props) {
+export function MembersSection({ card, onUpdate, locked }: Props) {
   const [users, setUsers] = useState<User[]>([])
   const [open, setOpen] = useState(false)
 
@@ -37,13 +37,16 @@ export function MembersSection({ card, onUpdate }: Props) {
           <div key={userId} className="flex items-center gap-1 bg-bdr/5 rounded-full pl-1 pr-2 py-0.5">
             <Avatar name={user.name} src={user.avatar} size="xs" />
             <span className="text-xs text-tx2">{user.name.split(' ')[0]}</span>
-            <button onClick={() => toggle(userId)} className="ml-0.5 text-tx3 hover:text-red-400 transition-colors">
-              <X className="w-3 h-3" />
-            </button>
+            {!locked && (
+              <button onClick={() => toggle(userId)} className="ml-0.5 text-tx3 hover:text-red-400 transition-colors">
+                <X className="w-3 h-3" />
+              </button>
+            )}
           </div>
         ))}
       </div>
 
+      {!locked && (
       <div className="relative">
         <button
           onClick={() => setOpen((o) => !o)}
@@ -70,6 +73,7 @@ export function MembersSection({ card, onUpdate }: Props) {
           </>
         )}
       </div>
+      )}
     </div>
   )
 }

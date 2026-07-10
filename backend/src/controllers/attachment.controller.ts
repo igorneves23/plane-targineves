@@ -2,6 +2,7 @@ import { Response } from 'express'
 import fs from 'fs'
 import { prisma } from '../lib/prisma'
 import { AuthRequest } from '../middlewares/auth'
+import { assertCardEditable } from '../lib/cardLock'
 
 export async function uploadAttachment(req: AuthRequest, res: Response) {
   if (!req.file) {
@@ -13,6 +14,11 @@ export async function uploadAttachment(req: AuthRequest, res: Response) {
   if (!cardId) {
     fs.unlinkSync(req.file.path)
     res.status(400).json({ error: 'cardId obrigatório' })
+    return
+  }
+
+  if (!(await assertCardEditable(req, res, cardId))) {
+    fs.unlinkSync(req.file.path)
     return
   }
 
@@ -33,6 +39,8 @@ export async function deleteAttachment(req: AuthRequest, res: Response) {
     res.status(404).json({ error: 'Anexo não encontrado' })
     return
   }
+
+  if (!(await assertCardEditable(req, res, att.cardId))) return
 
   const fullPath = `${__dirname}/../../uploads/${att.path.split('/uploads/')[1]}`
   if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath)

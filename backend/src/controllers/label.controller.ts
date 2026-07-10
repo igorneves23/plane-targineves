@@ -2,6 +2,7 @@ import { Response } from 'express'
 import { z } from 'zod'
 import { prisma } from '../lib/prisma'
 import { AuthRequest } from '../middlewares/auth'
+import { assertCardEditable } from '../lib/cardLock'
 
 export async function listLabels(_req: AuthRequest, res: Response) {
   const labels = await prisma.label.findMany({ orderBy: { name: 'asc' } })
@@ -45,6 +46,8 @@ export async function addLabelToCard(req: AuthRequest, res: Response) {
     return
   }
 
+  if (!(await assertCardEditable(req, res, req.params.cardId))) return
+
   await prisma.cardLabel.upsert({
     where: { cardId_labelId: { cardId: req.params.cardId, labelId: parsed.data.labelId } },
     update: {},
@@ -54,6 +57,7 @@ export async function addLabelToCard(req: AuthRequest, res: Response) {
 }
 
 export async function removeLabelFromCard(req: AuthRequest, res: Response) {
+  if (!(await assertCardEditable(req, res, req.params.cardId))) return
   await prisma.cardLabel.deleteMany({
     where: { cardId: req.params.cardId, labelId: req.params.labelId },
   })
