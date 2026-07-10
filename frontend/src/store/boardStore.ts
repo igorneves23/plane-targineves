@@ -159,6 +159,10 @@ export const useBoardStore = create<BoardState>((set, get) => ({
           columns: s.activeBoard.columns.map((c) =>
             c.id === currentColumnId ? { ...c, cards: c.cards.filter((cd) => cd.id !== cardId) } : c
           ),
+          // A posição/dia de referência pode ter mudado com o move — a
+          // próxima visita ao quadro recalcula certinho; por ora só evita
+          // mostrar um cartão que já saiu de onde estava.
+          visitingCards: s.activeBoard.visitingCards?.filter((vc) => vc.id !== cardId),
         },
       }
     })
@@ -174,6 +178,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
           columns: s.activeBoard.columns.map((c) =>
             c.id === columnId ? { ...c, cards: c.cards.filter((cd) => cd.id !== cardId) } : c
           ),
+          visitingCards: s.activeBoard.visitingCards?.filter((vc) => vc.id !== cardId),
         },
       }
     })
@@ -189,6 +194,9 @@ export const useBoardStore = create<BoardState>((set, get) => ({
             ...c,
             cards: c.cards.map((cd) => (cd.id === card.id ? card : cd)),
           })),
+          // Mantém referenceDate/weekday/board (não vêm no PATCH do card) e
+          // só atualiza os campos que de fato mudaram.
+          visitingCards: s.activeBoard.visitingCards?.map((vc) => (vc.id === card.id ? { ...vc, ...card } : vc)),
         },
       }
     })

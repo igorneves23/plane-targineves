@@ -2,6 +2,7 @@ import { Response } from 'express'
 import { z } from 'zod'
 import { prisma } from '../lib/prisma'
 import { AuthRequest } from '../middlewares/auth'
+import { getVisitingCards } from '../lib/visitingCards'
 
 const boardSchema = z.object({
   title: z.string().min(1),
@@ -66,7 +67,10 @@ export async function getBoard(req: AuthRequest, res: Response) {
     res.status(404).json({ error: 'Quadro não encontrado' })
     return
   }
-  res.json(board)
+
+  const visitingCards = board.responsibleId ? await getVisitingCards(board.responsibleId, board.id) : []
+
+  res.json({ ...board, visitingCards })
 }
 
 export async function updateBoard(req: AuthRequest, res: Response) {

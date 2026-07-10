@@ -2,7 +2,6 @@ import { Response } from 'express'
 import { z } from 'zod'
 import { prisma } from '../lib/prisma'
 import { AuthRequest } from '../middlewares/auth'
-import { syncCardMirrors } from '../lib/mirror'
 import { assertCardEditable, assertCardFieldsEditable } from '../lib/cardLock'
 
 const cardSchema = z.object({
@@ -103,8 +102,6 @@ export async function updateCard(req: AuthRequest, res: Response) {
     data: { cardId: card.id, userId: req.userId!, action: `atualizou o cartão "${card.title}"` },
   })
 
-  await syncCardMirrors(card.id)
-
   res.json(card)
 }
 
@@ -137,8 +134,6 @@ export async function moveCard(req: AuthRequest, res: Response) {
     data: { cardId: card.id, userId: req.userId!, action: `moveu o cartão "${card.title}"` },
   })
 
-  await syncCardMirrors(card.id)
-
   res.json(card)
 }
 
@@ -156,7 +151,6 @@ export async function addMember(req: AuthRequest, res: Response) {
     update: {},
     create: { cardId: req.params.id, userId },
   })
-  await syncCardMirrors(req.params.id)
   res.json({ ok: true })
 }
 
@@ -165,7 +159,6 @@ export async function removeMember(req: AuthRequest, res: Response) {
   await prisma.cardMember.deleteMany({
     where: { cardId: req.params.id, userId: req.params.userId },
   })
-  await syncCardMirrors(req.params.id)
   res.status(204).send()
 }
 
@@ -223,10 +216,7 @@ function startOfWeek(d: Date): Date {
 
 export async function listWorkload(_req: AuthRequest, res: Response) {
   const cards = await prisma.card.findMany({
-    // Cartões espelhados (sourceCardId) não contam à parte — a hora já é
-    // contabilizada uma vez no cartão original, senão duplicaria a carga
-    // de quem é responsável por outro quadro.
-    where: { status: { not: 'DONE' }, sourceCardId: null },
+    where: { status: { not: 'DONE' } },
     include: {
       members: { include: { user: { select: { id: true, name: true, avatar: true } } } },
       column: { include: { board: { select: { id: true, title: true, color: true } } } },
@@ -283,8 +273,7 @@ export async function listPerformance(_req: AuthRequest, res: Response) {
   since.setDate(since.getDate() - 30)
 
   const cards = await prisma.card.findMany({
-    // Cartões espelhados não contam à parte — já são refletidos no original.
-    where: { createdAt: { gte: since }, sourceCardId: null },
+    where: { createdAt: { gte: since } },
     include: {
       members: { include: { user: { select: { id: true, name: true, avatar: true } } } },
     },

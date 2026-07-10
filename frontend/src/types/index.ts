@@ -150,4 +150,7 @@ export interface Board {
   responsible?: Pick<User, 'id' | 'name' | 'avatar'> | null
   columns: Column[]
   _count?: { columns: number }
+  // Cards que moram em outros quadros, mas onde o responsável deste quadro
+  // é membro — mesmo registro, só uma visualização (ver getVisitingCards).
+  visitingCards?: WeeklyCard[]
 }

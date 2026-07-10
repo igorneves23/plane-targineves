@@ -15,4 +15,4 @@ RUN mkdir -p uploads
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx prisma db push && npm run start"]
+CMD ["sh", "-c", "npx tsx prisma/cleanup-mirrors.ts && npx prisma db push && npm run start"]

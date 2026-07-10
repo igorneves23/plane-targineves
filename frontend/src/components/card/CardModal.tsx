@@ -70,6 +70,13 @@ export function CardModal({ card: initialCard, onClose }: Props) {
   // Líder e Membro só podem mudar o status de cartões criados por um administrador
   const locked = currentUser?.role !== 'ADMIN' && card.createdBy?.role === 'ADMIN'
 
+  // Quando o card é "de visita" (aparece aqui só porque o responsável deste
+  // quadro participa dele), ele carrega o quadro de origem em `board` — é
+  // esse que precisa sair da lista de destinos, não o quadro visitado.
+  // Usa `initialCard` (o prop original) porque `card` é substituído pelo
+  // refetch em cardService.get, que não devolve esse campo extra.
+  const ownBoardId = (initialCard as unknown as { board?: { id: string } }).board?.id ?? activeBoard?.id
+
   const [movingBoard, setMovingBoard] = useState(false)
   const [targetBoardId, setTargetBoardId] = useState('')
   const [targetColumns, setTargetColumns] = useState<Column[]>([])
@@ -579,7 +586,7 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                   >
                     <option value="">Selecionar quadro...</option>
                     {boards
-                      .filter((b) => b.id !== activeBoard?.id)
+                      .filter((b) => b.id !== ownBoardId)
                       .map((b) => (
                         <option key={b.id} value={b.id}>{b.title}</option>
                       ))}

@@ -8,6 +8,7 @@ import { Plus } from 'lucide-react'
 import { Board, Card } from '../../types'
 import { ColumnItem } from './ColumnItem'
 import { CardItem } from './CardItem'
+import { VisitingCards } from './VisitingCards'
 import { CardModal } from '../card/CardModal'
 import { useBoardStore } from '../../store/boardStore'
 
@@ -70,10 +71,10 @@ export function BoardView({ board }: Props) {
   }
 
   return (
-    <>
+    <div className="h-full flex flex-col">
       <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={onDragStart} onDragOver={onDragOver} onDragEnd={onDragEnd}>
         <SortableContext items={board.columns.map((c) => c.id)} strategy={horizontalListSortingStrategy}>
-          <div className="flex gap-4 h-full overflow-x-auto pb-4 pt-2 px-6">
+          <div className="flex-1 min-h-0 flex gap-4 overflow-x-auto pb-4 pt-2 px-6">
             {board.columns.map((col) => (
               <ColumnItem key={col.id} column={col} onCardClick={setActiveCard} boardColor={board.color} />
             ))}
@@ -119,9 +120,11 @@ export function BoardView({ board }: Props) {
         </DragOverlay>
       </DndContext>
 
+      {board.visitingCards && <VisitingCards cards={board.visitingCards} onCardClick={setActiveCard} />}
+
       {activeCard && (
         <CardModal card={activeCard} onClose={() => setActiveCard(null)} />
       )}
-    </>
+    </div>
   )
 }
