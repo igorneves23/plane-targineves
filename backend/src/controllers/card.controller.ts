@@ -137,6 +137,8 @@ export async function moveCard(req: AuthRequest, res: Response) {
     data: { cardId: card.id, userId: req.userId!, action: `moveu o cartão "${card.title}"` },
   })
 
+  await syncCardMirrors(card.id)
+
   res.json(card)
 }
 
