@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import {
   X, Trash2, Calendar, Flag, RotateCcw, Users, Tag, Paperclip,
-  MessageSquare, CheckSquare, AlignLeft, Edit3, Check, Lock
+  MessageSquare, CheckSquare, AlignLeft, Edit3, Check, Lock, ArrowRightLeft
 } from 'lucide-react'
-import { Card, Priority, CardStatus, RecurringType } from '../../types'
+import { Card, Priority, CardStatus, RecurringType, Column } from '../../types'
 import { cardService } from '../../services/card.service'
+import { boardService } from '../../services/board.service'
 import { useBoardStore } from '../../store/boardStore'
 import { useAuthStore } from '../../store/authStore'
 import { Avatar } from '../ui/Avatar'
@@ -63,11 +64,18 @@ export function CardModal({ card: initialCard, onClose }: Props) {
   const [title, setTitle] = useState(card.title)
   const [desc, setDesc] = useState(card.description || '')
   const [saving, setSaving] = useState(false)
-  const { updateCardInStore, deleteCard } = useBoardStore()
+  const { updateCardInStore, deleteCard, moveCardToBoard, boards, activeBoard } = useBoardStore()
   const { user: currentUser } = useAuthStore()
 
   // Líder e Membro só podem mudar o status de cartões criados por um administrador
   const locked = currentUser?.role !== 'ADMIN' && card.createdBy?.role === 'ADMIN'
+
+  const [movingBoard, setMovingBoard] = useState(false)
+  const [targetBoardId, setTargetBoardId] = useState('')
+  const [targetColumns, setTargetColumns] = useState<Column[]>([])
+  const [targetColumnId, setTargetColumnId] = useState('')
+  const [loadingColumns, setLoadingColumns] = useState(false)
+  const [movingCard, setMovingCard] = useState(false)
 
   const [vencimentoValue, setVencimentoValue] = useState(card.dueDate ? toLocalInput(card.dueDate) : '')
   const [horarioValue, setHorarioValue] = useState(card.nextExecution ? toLocalTime(card.nextExecution) : '')
@@ -121,6 +129,34 @@ export function CardModal({ card: initialCard, onClose }: Props) {
     if (!confirm('Excluir este cartão?')) return
     await deleteCard(card.id, card.columnId)
     onClose()
+  }
+
+  async function selectTargetBoard(boardId: string) {
+    setTargetBoardId(boardId)
+    setTargetColumnId('')
+    setTargetColumns([])
+    if (!boardId) return
+    setLoadingColumns(true)
+    try {
+      const board = await boardService.get(boardId)
+      setTargetColumns(board.columns)
+      setTargetColumnId(board.columns[0]?.id ?? '')
+    } finally {
+      setLoadingColumns(false)
+    }
+  }
+
+  async function handleMoveToBoard() {
+    if (!targetColumnId) return
+    const targetColumn = targetColumns.find((c) => c.id === targetColumnId)
+    const position = targetColumn?.cards.length ?? 0
+    setMovingCard(true)
+    try {
+      await moveCardToBoard(card.id, card.columnId, targetColumnId, position)
+      onClose()
+    } finally {
+      setMovingCard(false)
+    }
   }
 
   const done = card.checklist?.filter((i) => i.completed).length ?? 0
@@ -516,6 +552,66 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                       }}
                       className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-40"
                     />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Mover para outro quadro */}
+            <div className="pt-2 border-t border-bdr/5">
+              {!movingBoard ? (
+                <button
+                  onClick={() => setMovingBoard(true)}
+                  disabled={locked}
+                  title={locked ? 'Apenas o administrador pode mover este cartão' : undefined}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs text-tx3 hover:bg-brand-500/10 hover:text-brand-500 transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-tx3 disabled:cursor-not-allowed"
+                >
+                  <ArrowRightLeft className="w-3.5 h-3.5" />
+                  Mover para outro quadro
+                </button>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-tx3 uppercase tracking-wider">Mover para outro quadro</p>
+                  <select
+                    value={targetBoardId}
+                    onChange={(e) => selectTargetBoard(e.target.value)}
+                    className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  >
+                    <option value="">Selecionar quadro...</option>
+                    {boards
+                      .filter((b) => b.id !== activeBoard?.id)
+                      .map((b) => (
+                        <option key={b.id} value={b.id}>{b.title}</option>
+                      ))}
+                  </select>
+                  {targetBoardId && (
+                    <select
+                      value={targetColumnId}
+                      disabled={loadingColumns}
+                      onChange={(e) => setTargetColumnId(e.target.value)}
+                      className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-40"
+                    >
+                      {loadingColumns && <option>Carregando colunas...</option>}
+                      {!loadingColumns && targetColumns.length === 0 && <option value="">Nenhuma coluna neste quadro</option>}
+                      {targetColumns.map((c) => (
+                        <option key={c.id} value={c.id}>{c.title}</option>
+                      ))}
+                    </select>
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleMoveToBoard}
+                      disabled={!targetColumnId || movingCard}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-brand-500 hover:bg-brand-600 text-white text-xs rounded-lg font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <Check className="w-3 h-3" /> {movingCard ? 'Movendo...' : 'Mover'}
+                    </button>
+                    <button
+                      onClick={() => { setMovingBoard(false); setTargetBoardId(''); setTargetColumnId(''); setTargetColumns([]) }}
+                      className="px-3 py-1.5 text-tx2 hover:text-tx1 text-xs transition-colors"
+                    >
+                      Cancelar
+                    </button>
                   </div>
                 </div>
               )}

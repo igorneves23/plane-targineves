@@ -19,6 +19,7 @@ interface BoardState {
   reorderColumns: (cols: { id: string; position: number }[]) => Promise<void>
   createCard: (columnId: string, title: string) => Promise<Card>
   moveCard: (cardId: string, targetColumnId: string, position: number) => Promise<void>
+  moveCardToBoard: (cardId: string, currentColumnId: string, targetColumnId: string, position: number) => Promise<void>
   deleteCard: (cardId: string, columnId: string) => Promise<void>
   updateCardInStore: (card: Card) => void
 }
@@ -145,6 +146,21 @@ export const useBoardStore = create<BoardState>((set, get) => ({
       })
 
       return { activeBoard: { ...s.activeBoard, columns: updated } }
+    })
+  },
+
+  moveCardToBoard: async (cardId, currentColumnId, targetColumnId, position) => {
+    await cardService.move(cardId, targetColumnId, position)
+    set((s) => {
+      if (!s.activeBoard) return s
+      return {
+        activeBoard: {
+          ...s.activeBoard,
+          columns: s.activeBoard.columns.map((c) =>
+            c.id === currentColumnId ? { ...c, cards: c.cards.filter((cd) => cd.id !== cardId) } : c
+          ),
+        },
+      }
     })
   },
 
