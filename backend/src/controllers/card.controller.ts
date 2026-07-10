@@ -273,6 +273,49 @@ export async function listWorkload(_req: AuthRequest, res: Response) {
   res.json(result)
 }
 
+export async function listPerformance(_req: AuthRequest, res: Response) {
+  const now = new Date()
+  const since = new Date(now)
+  since.setDate(since.getDate() - 30)
+
+  const cards = await prisma.card.findMany({
+    // Cartões espelhados não contam à parte — já são refletidos no original.
+    where: { createdAt: { gte: since }, sourceCardId: null },
+    include: {
+      members: { include: { user: { select: { id: true, name: true, avatar: true } } } },
+    },
+  })
+
+  const perUser = new Map<string, {
+    user: { id: string; name: string; avatar: string | null }
+    total: number
+    completed: number
+    overdue: number
+  }>()
+
+  for (const card of cards) {
+    if (card.members.length === 0) continue
+    const isDone = card.status === 'DONE'
+    const isOverdue = !!card.dueDate && card.dueDate < now && !isDone
+
+    for (const member of card.members) {
+      if (!perUser.has(member.userId)) {
+        perUser.set(member.userId, { user: member.user, total: 0, completed: 0, overdue: 0 })
+      }
+      const entry = perUser.get(member.userId)!
+      entry.total += 1
+      if (isDone) entry.completed += 1
+      if (isOverdue) entry.overdue += 1
+    }
+  }
+
+  const result = [...perUser.values()]
+    .map((e) => ({ ...e, completionRate: e.total > 0 ? Math.round((e.completed / e.total) * 100) : 0 }))
+    .sort((a, b) => b.total - a.total)
+
+  res.json(result)
+}
+
 export async function getActivities(req: AuthRequest, res: Response) {
   const activities = await prisma.activity.findMany({
     where: { cardId: req.params.id },

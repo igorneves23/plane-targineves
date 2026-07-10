@@ -1,11 +1,12 @@
 import api from './api'
-import { Card, Activity, WeeklyCard, WorkloadEntry } from '../types'
+import { Card, Activity, WeeklyCard, WorkloadEntry, PerformanceEntry } from '../types'
 
 export const cardService = {
   create: (data: { columnId: string; title: string; description?: string }) =>
     api.post<Card>('/cards', data).then((r) => r.data),
   weekly: () => api.get<WeeklyCard[]>('/cards/weekly').then((r) => r.data),
   workload: () => api.get<WorkloadEntry[]>('/cards/workload').then((r) => r.data),
+  performance: () => api.get<PerformanceEntry[]>('/cards/performance').then((r) => r.data),
   get: (id: string) => api.get<Card>(`/cards/${id}`).then((r) => r.data),
   update: (id: string, data: Partial<Card>) =>
     api.put<Card>(`/cards/${id}`, data).then((r) => r.data),

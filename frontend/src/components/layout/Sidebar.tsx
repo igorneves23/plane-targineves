@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, LogOut, Moon, Sun, Users, ChevronRight, X, PanelLeftClose, PanelLeftOpen, CalendarRange, Gauge } from 'lucide-react'
+import { LayoutDashboard, LogOut, Moon, Sun, Users, ChevronRight, X, PanelLeftClose, PanelLeftOpen, CalendarRange, Gauge, TrendingUp } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 import { useBoardStore } from '../../store/boardStore'
 import { useTheme } from '../../context/ThemeContext'
@@ -115,6 +115,24 @@ export function Sidebar() {
             >
               <Gauge className="w-4 h-4 shrink-0" />
               {!collapsed && 'Carga Horária'}
+            </Link>
+          )}
+
+          {user?.role === 'ADMIN' && (
+            <Link
+              to="/performance"
+              onClick={close}
+              title={collapsed ? 'Desempenho' : undefined}
+              className={clsx(
+                'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                collapsed && 'md:justify-center md:px-2',
+                location.pathname === '/performance'
+                  ? 'bg-brand-500/20 text-brand-400'
+                  : 'text-tx2 hover:bg-bdr/5 hover:text-tx1'
+              )}
+            >
+              <TrendingUp className="w-4 h-4 shrink-0" />
+              {!collapsed && 'Desempenho'}
             </Link>
           )}
 

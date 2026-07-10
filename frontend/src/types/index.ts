@@ -127,6 +127,14 @@ export interface WorkloadEntry {
   cards: WorkloadCardRef[]
 }
 
+export interface PerformanceEntry {
+  user: Pick<User, 'id' | 'name' | 'avatar'>
+  total: number
+  completed: number
+  overdue: number
+  completionRate: number
+}
+
 export interface Board {
   id: string
   title: string

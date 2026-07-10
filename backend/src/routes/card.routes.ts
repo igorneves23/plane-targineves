@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import {
   createCard, getCard, updateCard, deleteCard, moveCard,
-  addMember, removeMember, getActivities, listWeeklyCards, listWorkload,
+  addMember, removeMember, getActivities, listWeeklyCards, listWorkload, listPerformance,
 } from '../controllers/card.controller'
 import { authenticate, requireAdmin } from '../middlewares/auth'
 
@@ -11,6 +11,7 @@ router.use(authenticate)
 router.post('/', createCard)
 router.get('/weekly', listWeeklyCards)
 router.get('/workload', requireAdmin, listWorkload)
+router.get('/performance', requireAdmin, listPerformance)
 router.get('/:id', getCard)
 router.put('/:id', updateCard)
 router.delete('/:id', deleteCard)
