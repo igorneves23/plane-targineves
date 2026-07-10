@@ -267,6 +267,139 @@ export async function listWorkload(_req: AuthRequest, res: Response) {
   res.json(result)
 }
 
+// Duração média de cada tipo de recorrência, em dias — usada pra converter
+// "duration por ocorrência" num total proporcional a um período qualquer
+// (semana, mês, ano), sem depender do dia exato em que a próxima ocorrência cai.
+const PERIOD_DAYS: Record<string, number> = {
+  DAILY: 1,
+  WEEKLY: 7,
+  MONTHLY: 30.4368,
+  YEARLY: 365.25,
+}
+
+interface RangeCard {
+  recurring: boolean
+  recurringType: string | null
+  durationMinutes: number | null
+  dueDate: Date | null
+  createdAt: Date
+}
+
+// Quantos minutos um cartão representa dentro de [rangeStart, rangeEnd).
+// Cartão recorrente: proporcional ao tamanho do período, só enquanto a
+// recorrência está "ativa" (criada antes do fim do período e, se tiver
+// vencimento, ainda não encerrada antes do início dele — dueDate marca o fim
+// da recorrência, ver recurrence.job.ts). Cartão avulso: conta inteiro se o
+// vencimento cair dentro do período.
+function rangeMinutesForCard(card: RangeCard, rangeStart: Date, rangeEnd: Date): number {
+  const duration = card.durationMinutes ?? 60
+
+  if (card.recurring && card.recurringType) {
+    if (card.createdAt >= rangeEnd) return 0
+    if (card.dueDate && card.dueDate < rangeStart) return 0
+    const periodDays = PERIOD_DAYS[card.recurringType] ?? 7
+    const rangeDays = (rangeEnd.getTime() - rangeStart.getTime()) / 86400000
+    return duration * (rangeDays / periodDays)
+  }
+
+  if (card.dueDate && card.dueDate >= rangeStart && card.dueDate < rangeEnd) {
+    return duration
+  }
+
+  return 0
+}
+
+export async function listWorkloadMonthly(_req: AuthRequest, res: Response) {
+  const cards = await prisma.card.findMany({
+    where: { status: { not: 'DONE' } },
+    include: {
+      members: { include: { user: { select: { id: true, name: true, avatar: true } } } },
+      column: { include: { board: { select: { id: true, title: true, color: true } } } },
+    },
+  })
+
+  const now = new Date()
+  const rangeStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  const rangeEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+
+  const perUser = new Map<string, {
+    user: { id: string; name: string; avatar: string | null }
+    minutes: number
+    cards: { id: string; title: string; minutes: number; boardTitle: string; boardColor: string }[]
+  }>()
+
+  for (const card of cards) {
+    if (card.members.length === 0) continue
+    const minutes = rangeMinutesForCard(card, rangeStart, rangeEnd)
+    if (minutes <= 0) continue
+
+    for (const member of card.members) {
+      if (!perUser.has(member.userId)) {
+        perUser.set(member.userId, { user: member.user, minutes: 0, cards: [] })
+      }
+      const entry = perUser.get(member.userId)!
+      entry.minutes += minutes
+      entry.cards.push({
+        id: card.id,
+        title: card.title,
+        minutes,
+        boardTitle: card.column.board.title,
+        boardColor: card.column.board.color,
+      })
+    }
+  }
+
+  const result = [...perUser.values()].sort((a, b) => b.minutes - a.minutes)
+  res.json(result)
+}
+
+const MONTH_LABELS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+
+export async function listWorkloadYearly(_req: AuthRequest, res: Response) {
+  // Sem filtro de status: aqui é uma visão de longo prazo (passado e
+  // próximos meses), não "o que está pendente agora".
+  const cards = await prisma.card.findMany({
+    include: {
+      members: { include: { user: { select: { id: true, name: true, avatar: true } } } },
+    },
+  })
+
+  const now = new Date()
+  const months = Array.from({ length: 12 }, (_, i) => {
+    const start = new Date(now.getFullYear(), now.getMonth() - (11 - i), 1)
+    const end = new Date(now.getFullYear(), now.getMonth() - (11 - i) + 1, 1)
+    return {
+      month: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}`,
+      label: `${MONTH_LABELS[start.getMonth()]}/${String(start.getFullYear()).slice(2)}`,
+      start,
+      end,
+    }
+  })
+
+  const result = months.map(({ month, label, start, end }) => {
+    const perUser = new Map<string, { id: string; name: string; avatar: string | null; minutes: number }>()
+
+    for (const card of cards) {
+      if (card.members.length === 0) continue
+      const minutes = rangeMinutesForCard(card, start, end)
+      if (minutes <= 0) continue
+
+      for (const member of card.members) {
+        const existing = perUser.get(member.userId)
+        if (existing) {
+          existing.minutes += minutes
+        } else {
+          perUser.set(member.userId, { id: member.userId, name: member.user.name, avatar: member.user.avatar, minutes })
+        }
+      }
+    }
+
+    return { month, label, users: [...perUser.values()].sort((a, b) => b.minutes - a.minutes) }
+  })
+
+  res.json(result)
+}
+
 export async function listPerformance(_req: AuthRequest, res: Response) {
   const now = new Date()
   const since = new Date(now)

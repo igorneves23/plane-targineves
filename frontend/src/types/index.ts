@@ -129,6 +129,19 @@ export interface WorkloadEntry {
   cards: WorkloadCardRef[]
 }
 
+export interface YearlyWorkloadUser {
+  id: string
+  name: string
+  avatar?: string | null
+  minutes: number
+}
+
+export interface YearlyWorkloadMonth {
+  month: string
+  label: string
+  users: YearlyWorkloadUser[]
+}
+
 export interface PerformanceEntry {
   user: Pick<User, 'id' | 'name' | 'avatar'>
   total: number
