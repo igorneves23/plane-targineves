@@ -101,6 +101,7 @@ model Card {
   nextExecution   DateTime?
   durationMinutes Int?           @default(60)
   createdById     String
+  sourceCardId    String?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
@@ -111,6 +112,8 @@ model Card {
 
   column      Column          @relation(fields: [columnId], references: [id], onDelete: Cascade)
   createdBy   User            @relation("CardCreator", fields: [createdById], references: [id])
+  sourceCard  Card?           @relation("CardMirror", fields: [sourceCardId], references: [id], onDelete: Cascade)
+  mirrors     Card[]          @relation("CardMirror")
   members     CardMember[]
   checklist   ChecklistItem[]
   comments    Comment[]
