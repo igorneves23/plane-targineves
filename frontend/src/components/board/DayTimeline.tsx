@@ -198,7 +198,7 @@ export function DayTimeline({ cards, onCardClick, startHour = 6, endHour = 23, p
                 'hover:z-10 hover:shadow-lg transition-shadow',
                 isDone
                   ? 'bg-green-500/10 border-green-500/30 text-tx3'
-                  : !boardColor && 'bg-brand-500/15 border-brand-500/40 text-tx1'
+                  : boardColor ? 'text-tx1' : 'bg-brand-500/15 border-brand-500/40 text-tx1'
               )}
               style={{
                 top,
@@ -209,7 +209,6 @@ export function DayTimeline({ cards, onCardClick, startHour = 6, endHour = 23, p
                   ? {
                       backgroundColor: hexToRgba(boardColor, 0.18),
                       borderColor: hexToRgba(boardColor, 0.5),
-                      color: '#fff',
                     }
                   : {}),
               }}
