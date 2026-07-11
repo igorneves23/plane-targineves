@@ -6,11 +6,12 @@ const LOCK_MESSAGE = 'Apenas o administrador pode alterar este cartão. Você s�
 
 /**
  * Cartões criados por um administrador só podem ser alterados pelo próprio
- * administrador — Líder e Membro só visualizam (nenhum campo, checklist,
- * comentário, etiqueta, anexo, responsável, exclusão ou mover de coluna/
- * quadro é permitido), com duas exceções pontuais: mudar o status do
- * cartão e marcar/desmarcar itens do checklist como concluídos (ver
- * assertCardFieldsEditable). Se bloqueado, já responde 403 e retorna false.
+ * administrador — Líder e Membro só visualizam (nenhum campo, etiqueta,
+ * anexo, responsável, exclusão ou mover de coluna/quadro é permitido),
+ * com exceções pontuais: mudar o status do cartão e marcar/desmarcar
+ * itens do checklist como concluídos (ver assertCardFieldsEditable).
+ * Comentário não usa esse bloqueio — é conversa, sempre liberado (ver
+ * comment.controller.ts). Se bloqueado, já responde 403 e retorna false.
  */
 export async function assertCardEditable(req: AuthRequest, res: Response, cardId: string): Promise<boolean> {
   if (req.userRole === 'ADMIN') return true

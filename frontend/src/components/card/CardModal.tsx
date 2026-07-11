@@ -342,13 +342,14 @@ export function CardModal({ card: initialCard, onClose }: Props) {
               <ChecklistSection card={card} onUpdate={syncCard} locked={locked} />
             </div>
 
-            {/* Comments */}
+            {/* Comments — liberado pra todo mundo, mesmo em cartão do admin;
+                é conversa, não edição do card. */}
             <div>
               <div className="flex items-center gap-2 text-tx2 mb-3">
                 <MessageSquare className="w-4 h-4" />
                 <span className="text-sm font-medium">Comentários</span>
               </div>
-              <CommentsSection card={card} onUpdate={syncCard} locked={locked} />
+              <CommentsSection card={card} onUpdate={syncCard} />
             </div>
           </div>
 
