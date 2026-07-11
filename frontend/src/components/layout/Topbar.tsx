@@ -10,9 +10,9 @@ import { BOARD_COLORS as COLORS } from '../../constants/colors'
 import api from '../../services/api'
 import { User } from '../../types'
 
-interface Props { title?: string }
+interface Props { title?: string; extra?: React.ReactNode }
 
-export function Topbar({ title }: Props) {
+export function Topbar({ title, extra }: Props) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
   const [desc, setDesc] = useState('')
@@ -58,10 +58,13 @@ export function Topbar({ title }: Props) {
           </button>
           <h1 className="font-semibold text-tx1 text-lg">{title || 'Plane'}</h1>
         </div>
-        <Button onClick={() => setOpen(true)} size="sm">
-          <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">Novo quadro</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          {extra}
+          <Button onClick={() => setOpen(true)} size="sm">
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Novo quadro</span>
+          </Button>
+        </div>
       </header>
 
       <Modal open={open} onClose={() => setOpen(false)} title="Criar quadro">

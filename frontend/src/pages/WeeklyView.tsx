@@ -64,17 +64,19 @@ export default function WeeklyView() {
     <div className="flex h-screen bg-bg0 text-tx1 overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
-        <Topbar title="Visão Semanal" />
-        <main className="flex-1 overflow-x-auto overflow-y-hidden p-6">
-          <div className="flex justify-end mb-4">
+        <Topbar
+          title="Visão Semanal"
+          extra={
             <button
               onClick={() => setViewMode(viewMode === 'timeline' ? 'list' : 'timeline')}
               className="flex items-center gap-1.5 text-xs text-tx3 hover:text-tx1 bg-bg1 border border-bdr/10 rounded-lg px-3 py-1.5 transition-colors"
             >
               {viewMode === 'timeline' ? <LayoutList className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-              {viewMode === 'timeline' ? 'Ver como lista' : 'Ver linha do tempo'}
+              <span className="hidden sm:inline">{viewMode === 'timeline' ? 'Ver como lista' : 'Ver linha do tempo'}</span>
             </button>
-          </div>
+          }
+        />
+        <main className="flex-1 overflow-x-auto overflow-y-hidden p-6">
           {loading ? (
             <div className="flex gap-4 h-full">
               {[...Array(7)].map((_, i) => (
