@@ -7,6 +7,7 @@ import { CardItem } from './CardItem'
 import { VisitingCardTile } from './VisitingCardTile'
 import { DayTimeline, hasTimelineSlot } from './DayTimeline'
 import { useBoardStore } from '../../store/boardStore'
+import { cardService } from '../../services/card.service'
 import clsx from 'clsx'
 
 interface Props {
@@ -37,7 +38,15 @@ export function ColumnItem({
   const [collapsed, setCollapsed] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'list' | 'timeline'>(isWeekdayColumn ? 'timeline' : 'list')
-  const { createCard, updateColumn, deleteColumn } = useBoardStore()
+  const { createCard, updateColumn, deleteColumn, updateCardInStore } = useBoardStore()
+
+  // Arrastar um cartão na linha do tempo muda só a hora (mesmo dia) — em
+  // cartão recorrente isso é a próxima execução, senão é o vencimento.
+  async function handleReschedule(card: Card, newStart: Date) {
+    const data = card.recurring ? { nextExecution: newStart.toISOString() } : { dueDate: newStart.toISOString() }
+    const updated = await cardService.update(card.id, data as Partial<Card>)
+    updateCardInStore(updated)
+  }
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: column.id,
@@ -174,6 +183,7 @@ export function ColumnItem({
                 onCardClick={onCardClick}
                 getColor={(c) => (c as WeeklyCard).board?.color ?? boardColor}
                 showNowLine={isToday}
+                onReschedule={handleReschedule}
               />
               {(column.cards.some((c) => !hasTimelineSlot(c)) || visitingCards.some((c) => !hasTimelineSlot(c))) && (
                 <div className="mt-3 pt-3 border-t border-bdr/10 space-y-2">

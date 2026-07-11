@@ -6,7 +6,7 @@ import { Avatar } from '../components/ui/Avatar'
 import { CardModal } from '../components/card/CardModal'
 import { DayTimeline } from '../components/board/DayTimeline'
 import { cardService } from '../services/card.service'
-import { WeeklyCard } from '../types'
+import { Card, WeeklyCard } from '../types'
 import { format } from 'date-fns'
 import clsx from 'clsx'
 
@@ -47,6 +47,14 @@ export default function WeeklyView() {
 
   function handleClose() {
     setActiveCard(null)
+    load()
+  }
+
+  // Arrastar um cartão na linha do tempo muda só a hora (mesmo dia) — em
+  // cartão recorrente isso é a próxima execução, senão é o vencimento.
+  async function handleReschedule(card: Card, newStart: Date) {
+    const data = card.recurring ? { nextExecution: newStart.toISOString() } : { dueDate: newStart.toISOString() }
+    await cardService.update(card.id, data as Partial<Card>)
     load()
   }
 
@@ -109,6 +117,7 @@ export default function WeeklyView() {
                           cards={dayCards}
                           onCardClick={(c) => setActiveCard(c as WeeklyCard)}
                           getColor={(c) => (c as WeeklyCard).board.color}
+                          onReschedule={handleReschedule}
                         />
                       )}
                       {viewMode === 'list' && dayCards.map((card) => {

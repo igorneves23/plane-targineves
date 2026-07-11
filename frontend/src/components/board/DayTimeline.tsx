@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { CheckSquare, Clock, MessageSquare } from 'lucide-react'
 import { Card } from '../../types'
 import { Avatar } from '../ui/Avatar'
+import { useAuthStore } from '../../store/authStore'
 import clsx from 'clsx'
 
 interface Props {
@@ -15,6 +16,11 @@ interface Props {
   // Mostra a linha vermelha da hora atual — só faz sentido passar true
   // quando esta linha do tempo representa o dia de hoje.
   showNowLine?: boolean
+  // Se informado, segurar e arrastar um cartão verticalmente muda o
+  // horário dele (mesmo dia, só a hora) — encaixado em `snapMinutes`.
+  // Sem isso, os cartões continuam só clicáveis, como antes.
+  onReschedule?: (card: Card, newStart: Date) => void
+  snapMinutes?: number
 }
 
 // Converte #rrggbb em rgba(...) com a opacidade informada (aceita também formatos curtos #rgb)
@@ -114,12 +120,26 @@ interface HoverState {
 }
 
 const TOOLTIP_WIDTH = 260
+const DRAG_THRESHOLD_PX = 4 // abaixo disso, é um clique — não um arraste
 
-export function DayTimeline({ cards, onCardClick, startHour = 6, endHour = 23, pxPerHour = 48, getColor, showNowLine }: Props) {
+interface DragState {
+  cardId: string
+  pointerId: number
+  startClientY: number
+  originStartMinutes: number
+  deltaY: number
+}
+
+export function DayTimeline({
+  cards, onCardClick, startHour = 6, endHour = 23, pxPerHour = 48, getColor, showNowLine,
+  onReschedule, snapMinutes = 15,
+}: Props) {
   const positioned = layoutCards(cards)
   const totalHeight = (endHour - startHour) * pxPerHour
   const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => startHour + i)
   const [hovered, setHovered] = useState<HoverState | null>(null)
+  const [drag, setDrag] = useState<DragState | null>(null)
+  const { user: currentUser } = useAuthStore()
 
   // Recalcula a cada minuto pra linha do "agora" ir andando sem precisar recarregar a página.
   const [, forceTick] = useState(0)
@@ -135,7 +155,63 @@ export function DayTimeline({ cards, onCardClick, startHour = 6, endHour = 23, p
     ? ((nowMin - startHour * 60) / 60) * pxPerHour
     : null
 
+  // Líder/Membro só pode mudar o status de cartões criados por um
+  // administrador — arrastar mudaria o horário, então fica bloqueado
+  // (mesma regra do CardModal/CardItem).
+  function isLocked(card: Card) {
+    return currentUser?.role !== 'ADMIN' && card.createdBy?.role === 'ADMIN'
+  }
+
+  function snapClamp(minutes: number) {
+    const snapped = Math.round(minutes / snapMinutes) * snapMinutes
+    return Math.max(startHour * 60, Math.min(endHour * 60 - snapMinutes, snapped))
+  }
+
+  function handlePointerDown(e: React.PointerEvent<HTMLDivElement>, item: PositionedCard) {
+    if (!onReschedule || isLocked(item.card)) return
+    e.stopPropagation()
+    // Se a captura falhar (raro, mas não custa nada blindar), o clique e o
+    // arraste continuam funcionando — só perde a garantia de que os eventos
+    // seguem o ponteiro se ele sair de cima do card durante o arraste.
+    try { e.currentTarget.setPointerCapture(e.pointerId) } catch { /* segue sem captura */ }
+    setHovered(null)
+    setDrag({
+      cardId: item.card.id,
+      pointerId: e.pointerId,
+      startClientY: e.clientY,
+      originStartMinutes: item.start.getHours() * 60 + item.start.getMinutes(),
+      deltaY: 0,
+    })
+  }
+
+  function handlePointerMove(e: React.PointerEvent<HTMLDivElement>, item: PositionedCard) {
+    if (!drag || drag.cardId !== item.card.id) return
+    setDrag({ ...drag, deltaY: e.clientY - drag.startClientY })
+  }
+
+  function handlePointerUp(e: React.PointerEvent<HTMLDivElement>, item: PositionedCard) {
+    if (!drag || drag.cardId !== item.card.id) return
+    try {
+      if (e.currentTarget.hasPointerCapture(drag.pointerId)) e.currentTarget.releasePointerCapture(drag.pointerId)
+    } catch { /* nada a liberar */ }
+
+    if (Math.abs(drag.deltaY) < DRAG_THRESHOLD_PX) {
+      setDrag(null)
+      onCardClick(item.card)
+      return
+    }
+
+    const deltaMinutes = (drag.deltaY / pxPerHour) * 60
+    const newMinutes = snapClamp(drag.originStartMinutes + deltaMinutes)
+    setDrag(null)
+    if (newMinutes === drag.originStartMinutes) return
+    const newStart = new Date(item.start)
+    newStart.setHours(Math.floor(newMinutes / 60), newMinutes % 60, 0, 0)
+    onReschedule?.(item.card, newStart)
+  }
+
   function handleEnter(e: React.MouseEvent<HTMLElement>, item: PositionedCard) {
+    if (drag) return
     const rect = e.currentTarget.getBoundingClientRect()
     const overflowsRight = rect.right + 12 + TOOLTIP_WIDTH > window.innerWidth
     const x = overflowsRight ? rect.left - TOOLTIP_WIDTH - 12 : rect.right + 12
@@ -186,25 +262,43 @@ export function DayTimeline({ cards, onCardClick, startHour = 6, endHour = 23, p
           const endMin = startMin + durationMin
           const endLabel = `${String(Math.floor(endMin / 60) % 24).padStart(2, '0')}:${String(endMin % 60).padStart(2, '0')}`
           const boardColor = getColor?.(card)
+          const canDrag = !!onReschedule && !isLocked(card)
+          const isDragging = drag?.cardId === card.id
+
+          let displayTop = top
+          let startLabel = timeLabel(start)
+          let displayEndLabel = endLabel
+          if (isDragging && drag) {
+            const liveMinutes = snapClamp(drag.originStartMinutes + (drag.deltaY / pxPerHour) * 60)
+            const liveEnd = liveMinutes + durationMin
+            displayTop = ((liveMinutes - startHour * 60) / 60) * pxPerHour
+            startLabel = `${String(Math.floor(liveMinutes / 60)).padStart(2, '0')}:${String(liveMinutes % 60).padStart(2, '0')}`
+            displayEndLabel = `${String(Math.floor(liveEnd / 60) % 24).padStart(2, '0')}:${String(liveEnd % 60).padStart(2, '0')}`
+          }
 
           return (
             <div
               key={card.id}
-              onClick={() => onCardClick(card)}
+              onClick={canDrag ? undefined : () => onCardClick(card)}
+              onPointerDown={canDrag ? (e) => handlePointerDown(e, item) : undefined}
+              onPointerMove={canDrag ? (e) => handlePointerMove(e, item) : undefined}
+              onPointerUp={canDrag ? (e) => handlePointerUp(e, item) : undefined}
               onMouseEnter={(e) => handleEnter(e, item)}
               onMouseLeave={() => setHovered(null)}
               className={clsx(
-                'absolute rounded-lg px-2 py-1 overflow-hidden cursor-pointer border',
-                'hover:z-10 hover:shadow-lg transition-shadow',
+                'absolute rounded-lg px-2 py-1 overflow-hidden border select-none',
+                isDragging ? 'z-30 shadow-2xl ring-2 ring-brand-500/70 cursor-grabbing' : 'hover:z-10 hover:shadow-lg transition-shadow',
+                !isDragging && (canDrag ? 'cursor-grab' : 'cursor-pointer'),
                 isDone
                   ? 'bg-green-500/10 border-green-500/30 text-tx3'
                   : boardColor ? 'text-tx1' : 'bg-brand-500/15 border-brand-500/40 text-tx1'
               )}
               style={{
-                top,
+                top: displayTop,
                 height,
                 left: `calc(${leftPct}% + 2px)`,
                 width: `calc(${widthPct}% - 4px)`,
+                touchAction: canDrag ? 'none' : undefined,
                 ...(!isDone && boardColor
                   ? {
                       backgroundColor: hexToRgba(boardColor, 0.18),
@@ -216,9 +310,9 @@ export function DayTimeline({ cards, onCardClick, startHour = 6, endHour = 23, p
               <p className={clsx('text-[11px] font-medium leading-tight truncate', isDone && 'line-through')}>
                 {card.title}
               </p>
-              {height > 32 && (
+              {(height > 32 || isDragging) && (
                 <p className="text-[10px] text-tx3 truncate">
-                  {timeLabel(start)} – {endLabel}
+                  {startLabel} – {displayEndLabel}
                 </p>
               )}
             </div>
