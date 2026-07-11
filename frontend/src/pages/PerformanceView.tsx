@@ -21,7 +21,10 @@ export default function PerformanceView() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (user?.role !== 'ADMIN') {
+    // user === null enquanto o /auth/me ainda não respondeu — só decide
+    // expulsar depois que o usuário carregou.
+    if (!user) return
+    if (user.role !== 'ADMIN') {
       navigate('/dashboard')
       return
     }

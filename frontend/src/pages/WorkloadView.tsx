@@ -36,7 +36,10 @@ export default function WorkloadView() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (user?.role !== 'ADMIN') {
+    // user === null enquanto o /auth/me ainda não respondeu (acesso direto
+    // pela URL ou F5) — só decide expulsar depois que o usuário carregou.
+    if (!user) return
+    if (user.role !== 'ADMIN') {
       navigate('/dashboard')
       return
     }

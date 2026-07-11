@@ -37,7 +37,10 @@ export default function Users() {
   const [editForm, setEditForm] = useState({ name: '', email: '', password: '', role: 'MEMBER' as UserRole })
 
   useEffect(() => {
-    if (user?.role !== 'ADMIN') {
+    // user === null enquanto o /auth/me ainda não respondeu — só decide
+    // expulsar depois que o usuário carregou.
+    if (!user) return
+    if (user.role !== 'ADMIN') {
       navigate('/dashboard')
       return
     }
