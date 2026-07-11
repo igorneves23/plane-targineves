@@ -67,7 +67,8 @@ export function CardModal({ card: initialCard, onClose }: Props) {
   const { updateCardInStore, deleteCard, moveCardToBoard, boards, activeBoard } = useBoardStore()
   const { user: currentUser } = useAuthStore()
 
-  // Líder e Membro só podem visualizar cartões criados por um administrador
+  // Líder e Membro só podem mudar o status e marcar/desmarcar itens do
+  // checklist em cartões criados por um administrador — o resto é travado.
   const locked = currentUser?.role !== 'ADMIN' && card.createdBy?.role === 'ADMIN'
 
   // Quando o card é "de visita" (aparece aqui só porque o responsável deste
@@ -274,7 +275,7 @@ export function CardModal({ card: initialCard, onClose }: Props) {
         {locked && (
           <div className="mx-4 md:mx-6 mb-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs">
             <Lock className="w-3.5 h-3.5 shrink-0" />
-            Este cartão foi criado pelo administrador — você só pode visualizar.
+            Este cartão foi criado pelo administrador — você só pode mudar o status e marcar itens do checklist.
           </div>
         )}
 
@@ -361,9 +362,8 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                   <button
                     key={s.value}
                     onClick={() => patch({ status: s.value } as Partial<Card>)}
-                    disabled={locked}
                     className={clsx(
-                      'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors md:w-full md:text-left disabled:opacity-40 disabled:cursor-not-allowed',
+                      'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors md:w-full md:text-left',
                       card.status === s.value ? 'bg-brand-500/20 text-brand-500' : 'text-tx2 hover:bg-bdr/5 hover:text-tx1'
                     )}
                   >

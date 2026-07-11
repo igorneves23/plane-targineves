@@ -155,9 +155,9 @@ export function DayTimeline({
     ? ((nowMin - startHour * 60) / 60) * pxPerHour
     : null
 
-  // Líder/Membro só pode visualizar cartões criados por um administrador —
-  // arrastar mudaria o horário, então fica bloqueado (mesma regra do
-  // CardModal/CardItem).
+  // Líder/Membro não pode mudar o horário de cartões criados por um
+  // administrador (só status e checklist são permitidos) — arrastar
+  // mudaria o horário, então fica bloqueado (mesma regra do CardModal).
   function isLocked(card: Card) {
     return currentUser?.role !== 'ADMIN' && card.createdBy?.role === 'ADMIN'
   }

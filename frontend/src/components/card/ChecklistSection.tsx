@@ -66,12 +66,14 @@ export function ChecklistSection({ card, onUpdate, locked }: Props) {
       {card.checklist?.map((item) => (
         <div key={item.id} className="group/item py-0.5">
           <div className="flex items-center gap-3">
+            {/* Marcar/desmarcar concluído é permitido mesmo em cartão do
+                admin — só o texto, a posição e o responsável do item ficam
+                travados pra Líder/Membro (ver locked mais abaixo). */}
             <input
               type="checkbox"
               checked={item.completed}
-              disabled={locked}
               onChange={() => toggleItem(item)}
-              className="accent-brand-500 w-4 h-4 shrink-0 cursor-pointer mt-0.5 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="accent-brand-500 w-4 h-4 shrink-0 cursor-pointer mt-0.5"
             />
 
             {editingId === item.id ? (

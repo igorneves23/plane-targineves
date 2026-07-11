@@ -2,7 +2,7 @@ import { Response } from 'express'
 import { z } from 'zod'
 import { prisma } from '../lib/prisma'
 import { AuthRequest } from '../middlewares/auth'
-import { assertCardEditable } from '../lib/cardLock'
+import { assertCardEditable, assertCardFieldsEditable } from '../lib/cardLock'
 import { weekdayInChurchTimeZone } from '../lib/weekday'
 
 const cardSchema = z.object({
@@ -87,7 +87,7 @@ export async function updateCard(req: AuthRequest, res: Response) {
     return
   }
 
-  if (!(await assertCardEditable(req, res, req.params.id))) return
+  if (!(await assertCardFieldsEditable(req, res, req.params.id, Object.keys(parsed.data)))) return
 
   const card = await prisma.card.update({
     where: { id: req.params.id },

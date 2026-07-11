@@ -2,7 +2,7 @@ import { Response } from 'express'
 import { z } from 'zod'
 import { prisma } from '../lib/prisma'
 import { AuthRequest } from '../middlewares/auth'
-import { assertCardEditable } from '../lib/cardLock'
+import { assertCardEditable, assertCardFieldsEditable } from '../lib/cardLock'
 
 export async function createItem(req: AuthRequest, res: Response) {
   const schema = z.object({ cardId: z.string(), title: z.string().min(1), assigneeId: z.string().optional().nullable() })
@@ -43,7 +43,9 @@ export async function updateItem(req: AuthRequest, res: Response) {
     res.status(404).json({ error: 'Item não encontrado' })
     return
   }
-  if (!(await assertCardEditable(req, res, existing.cardId))) return
+  // Líder/Membro pode marcar/desmarcar item concluído mesmo em cartão do
+  // admin — só não pode mexer no texto, posição ou responsável do item.
+  if (!(await assertCardFieldsEditable(req, res, existing.cardId, Object.keys(parsed.data), ['completed']))) return
 
   const { completed, ...rest } = parsed.data
   const data: typeof rest & { completed?: boolean; completedById?: string | null; completedAt?: Date | null } = { ...rest }
