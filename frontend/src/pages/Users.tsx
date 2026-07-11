@@ -113,12 +113,12 @@ export default function Users() {
         <Topbar title="Usuários" />
         <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-3xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
                 <h2 className="text-2xl font-bold text-tx1 mb-1">Gerenciar Usuários</h2>
                 <p className="text-tx2 text-sm">Crie e gerencie os acessos da equipe</p>
               </div>
-              <Button onClick={() => setShowForm(true)}>
+              <Button onClick={() => setShowForm(true)} className="shrink-0 whitespace-nowrap self-start sm:self-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 Novo usuário
               </Button>
@@ -134,7 +134,7 @@ export default function Users() {
                   </button>
                 </div>
                 <form onSubmit={handleCreate} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Input
                       label="Nome completo"
                       value={form.name}
@@ -151,7 +151,7 @@ export default function Users() {
                       required
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Input
                       label="Senha"
                       type="password"
@@ -199,7 +199,7 @@ export default function Users() {
                   </button>
                 </div>
                 <form onSubmit={handleUpdate} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Input
                       label="Nome completo"
                       value={editForm.name}
@@ -214,7 +214,7 @@ export default function Users() {
                       required
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Input
                       label="Nova senha (deixe em branco para não alterar)"
                       type="password"
@@ -265,58 +265,60 @@ export default function Users() {
                   <p>Nenhum usuário encontrado</p>
                 </div>
               ) : (
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-bdr/5 text-xs text-tx3 uppercase tracking-wider">
-                      <th className="text-left px-5 py-3 font-medium">Usuário</th>
-                      <th className="text-left px-5 py-3 font-medium">Função</th>
-                      <th className="text-left px-5 py-3 font-medium">Criado em</th>
-                      <th className="px-5 py-3" />
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-bdr/5">
-                    {users.map((u) => (
-                      <tr key={u.id} className="hover:bg-bdr/[0.02] transition-colors">
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-3">
-                            <Avatar name={u.name} src={u.avatar} size="sm" />
-                            <div>
-                              <p className="text-sm font-medium text-tx1">{u.name}</p>
-                              <p className="text-xs text-tx3">{u.email}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-5 py-4">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${ROLE_COLOR[u.role]}`}>
-                            {u.role === 'ADMIN' && <Shield className="w-3 h-3" />}
-                            {ROLE_LABEL[u.role]}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4 text-sm text-tx3">
-                          {format(new Date(u.createdAt), "dd 'de' MMM, yyyy", { locale: ptBR })}
-                        </td>
-                        <td className="px-5 py-4 text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <button
-                              onClick={() => openEdit(u)}
-                              className="p-1.5 text-tx3 hover:text-brand-400 hover:bg-brand-500/10 rounded-lg transition-colors"
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </button>
-                            {u.id !== user?.id && (
-                              <button
-                                onClick={() => handleDelete(u.id, u.name)}
-                                className="p-1.5 text-tx3 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            )}
-                          </div>
-                        </td>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-bdr/5 text-xs text-tx3 uppercase tracking-wider">
+                        <th className="text-left px-5 py-3 font-medium">Usuário</th>
+                        <th className="text-left px-5 py-3 font-medium">Função</th>
+                        <th className="text-left px-5 py-3 font-medium hidden sm:table-cell">Criado em</th>
+                        <th className="px-5 py-3" />
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-bdr/5">
+                      {users.map((u) => (
+                        <tr key={u.id} className="hover:bg-bdr/[0.02] transition-colors">
+                          <td className="px-5 py-4">
+                            <div className="flex items-center gap-3">
+                              <Avatar name={u.name} src={u.avatar} size="sm" />
+                              <div>
+                                <p className="text-sm font-medium text-tx1">{u.name}</p>
+                                <p className="text-xs text-tx3">{u.email}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-5 py-4">
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${ROLE_COLOR[u.role]}`}>
+                              {u.role === 'ADMIN' && <Shield className="w-3 h-3" />}
+                              {ROLE_LABEL[u.role]}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 text-sm text-tx3 hidden sm:table-cell">
+                            {format(new Date(u.createdAt), "dd 'de' MMM, yyyy", { locale: ptBR })}
+                          </td>
+                          <td className="px-5 py-4 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() => openEdit(u)}
+                                className="p-1.5 text-tx3 hover:text-brand-400 hover:bg-brand-500/10 rounded-lg transition-colors"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              {u.id !== user?.id && (
+                                <button
+                                  onClick={() => handleDelete(u.id, u.name)}
+                                  className="p-1.5 text-tx3 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           </div>

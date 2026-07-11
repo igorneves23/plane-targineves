@@ -194,8 +194,8 @@ export default function Dashboard() {
                   onClick={() => navigate(`/board/${board.id}`)}
                   className="group relative text-left bg-bg1 border border-bdr/5 rounded-xl p-5 hover:border-bdr/20 hover:bg-bg2/80 transition-all cursor-pointer"
                 >
-                  {/* Ações hover */}
-                  <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {/* Ações — sempre visíveis no mobile, reveladas no hover em telas maiores */}
+                  <div className="absolute top-3 right-3 flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={(e) => openEdit(e, board)}
                       className="p-1.5 rounded-lg bg-bg2 text-tx2 hover:text-tx1 hover:bg-bg3 transition-colors"
