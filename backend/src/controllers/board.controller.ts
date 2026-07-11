@@ -9,6 +9,7 @@ const boardSchema = z.object({
   description: z.string().optional(),
   color: z.string().optional(),
   responsibleId: z.string().optional().nullable(),
+  columnOrder: z.array(z.string()).optional(),
 })
 
 export async function listBoards(req: AuthRequest, res: Response) {

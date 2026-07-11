@@ -64,6 +64,12 @@ model Board {
   color         String   @default("#6366f1")
   createdById   String
   responsibleId String?
+  // Ordem visual das colunas escolhida por arraste — guarda o id de cada
+  // coluna real e/ou a chave da coluna de dia calculada (ex:
+  // "virtual-weekday-2"), da esquerda pra direita. Colunas fora dessa
+  // lista (novas, ou dias sem card de visita ainda) entram no final, na
+  // ordem padrão. Ver buildDisplayColumns no frontend.
+  columnOrder   String[] @default([])
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

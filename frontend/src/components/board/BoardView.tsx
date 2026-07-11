@@ -29,7 +29,8 @@ function weekdayOfColumn(title: string): number {
  * na coluna cujo título bate com o dia da semana deles — mesmo cartão, só
  * aparecem lá também. Quando não existe coluna com esse nome no quadro,
  * uma coluna "virtual" (calculada aqui, nunca salva) é criada só pra exibir
- * — por isso ela não pode ser arrastada, renomeada ou receber cartão novo.
+ * — por isso ela não pode ser renomeada, excluída nem receber cartão novo
+ * (mas pode ser arrastada pra reordenar, junto com as colunas reais).
  */
 function buildVirtualColumns(board: Board): Column[] {
   const visiting = board.visitingCards ?? []
@@ -48,16 +49,42 @@ function buildVirtualColumns(board: Board): Column[] {
   }))
 }
 
+interface DisplayColumn { column: Column; virtual: boolean }
+
+/**
+ * Ordem final das colunas (reais + de dia calculadas) da esquerda pra
+ * direita. Sem `columnOrder` salvo, usa a ordem padrão (reais por posição,
+ * depois as de dia). Com `columnOrder`, respeita o que foi arrastado —
+ * colunas novas que ainda não estão nessa lista (coluna recém-criada, ou
+ * dia que passou a ter card de visita) entram no final, mantendo a ordem
+ * padrão entre si.
+ */
+function buildDisplayColumns(board: Board, virtualColumns: Column[]): DisplayColumn[] {
+  const all: DisplayColumn[] = [
+    ...board.columns.map((column) => ({ column, virtual: false })),
+    ...virtualColumns.map((column) => ({ column, virtual: true })),
+  ]
+  const order = board.columnOrder
+  if (!order || order.length === 0) return all
+
+  const rank = new Map(order.map((key, i) => [key, i]))
+  return all
+    .map((dc, i) => ({ dc, i, rank: rank.has(dc.column.id) ? rank.get(dc.column.id)! : Infinity }))
+    .sort((a, b) => a.rank - b.rank || a.i - b.i)
+    .map(({ dc }) => dc)
+}
+
 export function BoardView({ board }: Props) {
   const [activeCard, setActiveCard] = useState<Card | null>(null)
   const [draggingCard, setDraggingCard] = useState<Card | null>(null)
   const [addingCol, setAddingCol] = useState(false)
   const [newColTitle, setNewColTitle] = useState('')
-  const { moveCard, createColumn, reorderColumns } = useBoardStore()
+  const { moveCard, createColumn, updateBoard } = useBoardStore()
 
   const visitingCards = board.visitingCards ?? []
   const visitingCardsFor = (weekday: number): WeeklyCard[] => visitingCards.filter((c) => c.weekday === weekday)
   const virtualColumns = buildVirtualColumns(board)
+  const displayColumns = buildDisplayColumns(board, virtualColumns)
   const todayWeekday = new Date().getDay()
 
   const sensors = useSensors(
@@ -91,13 +118,14 @@ export function BoardView({ board }: Props) {
     }
 
     if (isColumn) {
-      const oldIdx = board.columns.findIndex((c) => c.id === active.id)
-      const newIdx = board.columns.findIndex((c) => c.id === over.id)
-      if (oldIdx === newIdx) return
-      const reordered = [...board.columns]
+      const keys = displayColumns.map((dc) => dc.column.id)
+      const oldIdx = keys.indexOf(active.id as string)
+      const newIdx = keys.indexOf(over.id as string)
+      if (oldIdx === -1 || newIdx === -1 || oldIdx === newIdx) return
+      const reordered = [...keys]
       const [moved] = reordered.splice(oldIdx, 1)
       reordered.splice(newIdx, 0, moved)
-      await reorderColumns(reordered.map((c, i) => ({ id: c.id, position: i })))
+      await updateBoard(board.id, { columnOrder: reordered })
     }
   }
 
@@ -112,9 +140,9 @@ export function BoardView({ board }: Props) {
   return (
     <div className="h-full flex flex-col">
       <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={onDragStart} onDragOver={onDragOver} onDragEnd={onDragEnd}>
-        <SortableContext items={board.columns.map((c) => c.id)} strategy={horizontalListSortingStrategy}>
+        <SortableContext items={displayColumns.map((dc) => dc.column.id)} strategy={horizontalListSortingStrategy}>
           <div className="flex-1 min-h-0 flex gap-4 overflow-x-auto pb-4 pt-2 px-6">
-            {board.columns.map((col) => {
+            {displayColumns.map(({ column: col, virtual }) => {
               const weekday = weekdayOfColumn(col.title)
               return (
                 <ColumnItem
@@ -123,24 +151,9 @@ export function BoardView({ board }: Props) {
                   onCardClick={setActiveCard}
                   boardColor={board.color}
                   visitingCards={visitingCardsFor(weekday)}
-                  isWeekdayColumn={weekday !== -1}
+                  isWeekdayColumn={virtual || weekday !== -1}
                   isToday={weekday === todayWeekday}
-                />
-              )
-            })}
-
-            {virtualColumns.map((col) => {
-              const weekday = weekdayOfColumn(col.title)
-              return (
-                <ColumnItem
-                  key={col.id}
-                  column={col}
-                  onCardClick={setActiveCard}
-                  boardColor={board.color}
-                  visitingCards={visitingCardsFor(weekday)}
-                  isWeekdayColumn
-                  isToday={weekday === todayWeekday}
-                  readOnly
+                  readOnly={virtual}
                 />
               )
             })}

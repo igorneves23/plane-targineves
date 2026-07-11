@@ -7,6 +7,4 @@ export const columnService = {
   update: (id: string, data: { title?: string }) =>
     api.put<Column>(`/columns/${id}`, data).then((r) => r.data),
   delete: (id: string) => api.delete(`/columns/${id}`),
-  reorder: (cols: { id: string; position: number }[]) =>
-    api.put('/columns/reorder', cols).then((r) => r.data),
 }

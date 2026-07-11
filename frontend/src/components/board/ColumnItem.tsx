@@ -19,7 +19,8 @@ interface Props {
   // getVisitingCards). Não são arrastáveis nem contam pra posição da coluna.
   visitingCards?: WeeklyCard[]
   // Colunas calculadas na hora (dia da semana sem coluna própria no quadro)
-  // não podem ser renomeadas, excluídas, arrastadas nem receber cartão novo.
+  // não podem ser renomeadas, excluídas nem receber cartão novo — mas
+  // podem ser arrastadas pra reordenar (ver columnOrder em BoardView).
   readOnly?: boolean
   // Coluna representa um dia da semana (nome bate com um dia) — começa
   // aberta na visualização de linha do tempo em vez de lista.
@@ -51,9 +52,8 @@ export function ColumnItem({
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: column.id,
     data: { type: 'column' },
-    disabled: readOnly,
   })
-  const dragProps = readOnly ? {} : { ...attributes, ...listeners }
+  const dragProps = { ...attributes, ...listeners }
 
   async function handleAddCard(e: React.FormEvent) {
     e.preventDefault()

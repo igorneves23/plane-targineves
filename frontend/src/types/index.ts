@@ -166,4 +166,7 @@ export interface Board {
   // Cards que moram em outros quadros, mas onde o responsável deste quadro
   // é membro — mesmo registro, só uma visualização (ver getVisitingCards).
   visitingCards?: WeeklyCard[]
+  // Ordem visual das colunas (reais e/ou de dia calculadas) escolhida por
+  // arraste — ver buildDisplayColumns em BoardView.
+  columnOrder?: string[]
 }
