@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { prisma } from '../lib/prisma'
 import { AuthRequest } from '../middlewares/auth'
 import { assertCardEditable, assertCardFieldsEditable } from '../lib/cardLock'
+import { weekdayInChurchTimeZone } from '../lib/weekday'
 
 const cardSchema = z.object({
   columnId: z.string(),
@@ -187,7 +188,7 @@ export async function listWeeklyCards(_req: AuthRequest, res: Response) {
       return {
         ...rest,
         referenceDate,
-        weekday: referenceDate.getDay(),
+        weekday: weekdayInChurchTimeZone(referenceDate),
         board: column.board,
       }
     })

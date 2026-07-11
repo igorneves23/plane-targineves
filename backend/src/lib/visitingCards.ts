@@ -1,4 +1,5 @@
 import { prisma } from './prisma'
+import { weekdayInChurchTimeZone } from './weekday'
 
 /**
  * Cards onde `responsibleId` é membro, mas que fisicamente moram em outro
@@ -28,7 +29,7 @@ export async function getVisitingCards(responsibleId: string, ownBoardId: string
       const referenceDate = card.recurring ? card.nextExecution ?? card.dueDate : card.dueDate
       if (!referenceDate) return null
       const { column, ...rest } = card
-      return { ...rest, referenceDate, weekday: referenceDate.getDay(), board: column.board }
+      return { ...rest, referenceDate, weekday: weekdayInChurchTimeZone(referenceDate), board: column.board }
     })
     .filter((c): c is NonNullable<typeof c> => c !== null)
 }
