@@ -79,7 +79,7 @@ export function LabelsSection({ card, onUpdate, locked }: Props) {
     <div className="space-y-2">
       <div className="flex flex-wrap gap-1">
         {card.labels?.map(({ label, labelId }) => (
-          <Badge key={labelId} color={label.color}>
+          <Badge key={labelId} color={label.color} onRemove={locked ? undefined : () => toggle(label)}>
             {label.name}
           </Badge>
         ))}
