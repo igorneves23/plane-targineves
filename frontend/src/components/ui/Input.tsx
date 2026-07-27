@@ -12,7 +12,9 @@ export function Input({ label, error, className, ...props }: Props) {
       <input
         {...props}
         className={clsx(
-          'w-full px-3 py-2 rounded-lg bg-bdr/5 border text-sm text-tx1 placeholder-tx3 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors',
+          'w-full px-3 py-2 rounded-lg bg-bdr/5 border text-sm text-tx1 placeholder-tx3',
+          'transition-all duration-150 hover:border-bdr/25',
+          'focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent focus:bg-bdr/[0.08]',
           error ? 'border-red-500' : 'border-bdr/10',
           className
         )}

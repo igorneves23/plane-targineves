@@ -279,8 +279,12 @@ export function CardModal({ card: initialCard, onClose }: Props) {
           </div>
           <div className="flex items-center gap-1">
             {saving && <span className="text-xs text-tx3 animate-pulse">Salvando...</span>}
-            <button onClick={onClose} className="p-2 rounded-lg hover:bg-bdr/10 text-tx3 hover:text-tx1 transition-colors">
-              <X className="w-4 h-4" />
+            <button
+              onClick={onClose}
+              title="Fechar"
+              className="group p-2 rounded-lg text-tx3 hover:text-tx1 hover:bg-bdr/10 active:scale-90 transition-all"
+            >
+              <X className="w-4 h-4 transition-transform duration-200 group-hover:rotate-90" />
             </button>
           </div>
         </div>
@@ -377,8 +381,11 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                     key={s.value}
                     onClick={() => patch({ status: s.value } as Partial<Card>)}
                     className={clsx(
-                      'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors md:w-full md:text-left',
-                      card.status === s.value ? 'bg-brand-500/20 text-brand-500' : 'text-tx2 hover:bg-bdr/5 hover:text-tx1'
+                      'px-3 py-1.5 rounded-lg text-xs font-medium md:w-full md:text-left',
+                      'transition-all duration-150 active:scale-[0.98]',
+                      card.status === s.value
+                        ? 'bg-brand-500/20 text-brand-500'
+                        : 'text-tx2 hover:bg-bdr/5 hover:text-tx1 hover:translate-x-0.5'
                     )}
                   >
                     {s.label}
@@ -400,8 +407,11 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                     onClick={() => patch({ priority: p.value } as Partial<Card>)}
                     disabled={locked}
                     className={clsx(
-                      'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-2 md:w-full md:text-left disabled:opacity-40 disabled:cursor-not-allowed',
-                      card.priority === p.value ? 'bg-bdr/10 text-tx1' : 'text-tx2 hover:bg-bdr/5 hover:text-tx1'
+                      'px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 md:w-full md:text-left',
+                      'transition-all duration-150 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100',
+                      card.priority === p.value
+                        ? 'bg-bdr/10 text-tx1'
+                        : 'text-tx2 hover:bg-bdr/5 hover:text-tx1 enabled:hover:translate-x-0.5'
                     )}
                   >
                     <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: p.color }} />

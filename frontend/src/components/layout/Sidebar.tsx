@@ -7,6 +7,44 @@ import { useSidebar } from '../../context/SidebarContext'
 import { Avatar } from '../ui/Avatar'
 import clsx from 'clsx'
 
+interface NavItemProps {
+  to: string
+  icon: React.ReactNode
+  label: string
+  active: boolean
+  collapsed: boolean
+  onNavigate: () => void
+}
+
+/** Item de navegação da sidebar — mesma aparência e interação em todos. */
+function NavItem({ to, icon, label, active, collapsed, onNavigate }: NavItemProps) {
+  return (
+    <Link
+      to={to}
+      onClick={onNavigate}
+      title={collapsed ? label : undefined}
+      className={clsx(
+        'group relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium',
+        'transition-all duration-150',
+        collapsed && 'md:justify-center md:px-2',
+        active
+          ? 'bg-brand-500/20 text-brand-400'
+          : 'text-tx2 hover:bg-bdr/5 hover:text-tx1 hover:translate-x-0.5'
+      )}
+    >
+      {/* Marcador do item ativo */}
+      <span
+        className={clsx(
+          'absolute left-0 top-1/2 -translate-y-1/2 w-0.5 rounded-r-full bg-brand-400 transition-all duration-200',
+          active ? 'h-5 opacity-100' : 'h-0 opacity-0'
+        )}
+      />
+      <span className="shrink-0 transition-transform duration-150 group-hover:scale-110">{icon}</span>
+      {!collapsed && label}
+    </Link>
+  )
+}
+
 export function Sidebar() {
   const { user, logout } = useAuthStore()
   const { boards } = useBoardStore()
@@ -68,90 +106,55 @@ export function Sidebar() {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-          <Link
+          <NavItem
             to="/dashboard"
-            onClick={close}
-            title={collapsed ? 'Dashboard' : undefined}
-            className={clsx(
-              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-              collapsed && 'md:justify-center md:px-2',
-              location.pathname === '/dashboard'
-                ? 'bg-brand-500/20 text-brand-400'
-                : 'text-tx2 hover:bg-bdr/5 hover:text-tx1'
-            )}
-          >
-            <LayoutDashboard className="w-4 h-4 shrink-0" />
-            {!collapsed && 'Dashboard'}
-          </Link>
+            icon={<LayoutDashboard className="w-4 h-4" />}
+            label="Dashboard"
+            active={location.pathname === '/dashboard'}
+            collapsed={collapsed}
+            onNavigate={close}
+          />
 
-          <Link
+          <NavItem
             to="/weekly"
-            onClick={close}
-            title={collapsed ? 'Visão Semanal' : undefined}
-            className={clsx(
-              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-              collapsed && 'md:justify-center md:px-2',
-              location.pathname === '/weekly'
-                ? 'bg-brand-500/20 text-brand-400'
-                : 'text-tx2 hover:bg-bdr/5 hover:text-tx1'
-            )}
-          >
-            <CalendarRange className="w-4 h-4 shrink-0" />
-            {!collapsed && 'Visão Semanal'}
-          </Link>
+            icon={<CalendarRange className="w-4 h-4" />}
+            label="Visão Semanal"
+            active={location.pathname === '/weekly'}
+            collapsed={collapsed}
+            onNavigate={close}
+          />
 
           {user?.role === 'ADMIN' && (
-            <Link
+            <NavItem
               to="/workload"
-              onClick={close}
-              title={collapsed ? 'Carga Horária' : undefined}
-              className={clsx(
-                'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                collapsed && 'md:justify-center md:px-2',
-                location.pathname === '/workload'
-                  ? 'bg-brand-500/20 text-brand-400'
-                  : 'text-tx2 hover:bg-bdr/5 hover:text-tx1'
-              )}
-            >
-              <Gauge className="w-4 h-4 shrink-0" />
-              {!collapsed && 'Carga Horária'}
-            </Link>
+              icon={<Gauge className="w-4 h-4" />}
+              label="Carga Horária"
+              active={location.pathname === '/workload'}
+              collapsed={collapsed}
+              onNavigate={close}
+            />
           )}
 
           {user?.role === 'ADMIN' && (
-            <Link
+            <NavItem
               to="/performance"
-              onClick={close}
-              title={collapsed ? 'Desempenho' : undefined}
-              className={clsx(
-                'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                collapsed && 'md:justify-center md:px-2',
-                location.pathname === '/performance'
-                  ? 'bg-brand-500/20 text-brand-400'
-                  : 'text-tx2 hover:bg-bdr/5 hover:text-tx1'
-              )}
-            >
-              <TrendingUp className="w-4 h-4 shrink-0" />
-              {!collapsed && 'Desempenho'}
-            </Link>
+              icon={<TrendingUp className="w-4 h-4" />}
+              label="Desempenho"
+              active={location.pathname === '/performance'}
+              collapsed={collapsed}
+              onNavigate={close}
+            />
           )}
 
           {user?.role === 'ADMIN' && (
-            <Link
+            <NavItem
               to="/users"
-              onClick={close}
-              title={collapsed ? 'Usuários' : undefined}
-              className={clsx(
-                'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                collapsed && 'md:justify-center md:px-2',
-                location.pathname === '/users'
-                  ? 'bg-brand-500/20 text-brand-400'
-                  : 'text-tx2 hover:bg-bdr/5 hover:text-tx1'
-              )}
-            >
-              <Users className="w-4 h-4 shrink-0" />
-              {!collapsed && 'Usuários'}
-            </Link>
+              icon={<Users className="w-4 h-4" />}
+              label="Usuários"
+              active={location.pathname === '/users'}
+              collapsed={collapsed}
+              onNavigate={close}
+            />
           )}
 
           {boards.length > 0 && (
@@ -166,16 +169,21 @@ export function Sidebar() {
                   onClick={close}
                   title={collapsed ? board.title : undefined}
                   className={clsx(
-                    'flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors',
+                    'group flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150',
                     collapsed && 'md:justify-center md:px-2',
                     location.pathname === `/board/${board.id}`
                       ? 'bg-bdr/10 text-tx1'
-                      : 'text-tx2 hover:bg-bdr/5 hover:text-tx1'
+                      : 'text-tx2 hover:bg-bdr/5 hover:text-tx1 hover:translate-x-0.5'
                   )}
                 >
-                  <div className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: board.color }} />
+                  <div
+                    className="w-3 h-3 rounded-sm shrink-0 transition-transform duration-150 group-hover:scale-125"
+                    style={{ backgroundColor: board.color }}
+                  />
                   {!collapsed && <span className="truncate">{board.title}</span>}
-                  {!collapsed && <ChevronRight className="w-3 h-3 ml-auto opacity-0 group-hover:opacity-100" />}
+                  {!collapsed && (
+                    <ChevronRight className="w-3 h-3 ml-auto shrink-0 opacity-0 -translate-x-1 group-hover:opacity-60 group-hover:translate-x-0 transition-all" />
+                  )}
                 </Link>
               ))}
             </div>

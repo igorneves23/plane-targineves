@@ -119,6 +119,7 @@ export default function WeeklyView() {
                           cards={dayCards}
                           onCardClick={(c) => setActiveCard(c as WeeklyCard)}
                           getColor={(c) => (c as WeeklyCard).board.color}
+                          showNowLine={day.value === todayWeekday}
                           onReschedule={handleReschedule}
                         />
                       )}

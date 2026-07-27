@@ -165,6 +165,9 @@ export interface Board {
   responsible?: Pick<User, 'id' | 'name' | 'avatar'> | null
   columns: Column[]
   _count?: { columns: number }
+  // Resumo dos cartões do quadro, calculado no listBoards — usado nos números
+  // do Dashboard. Só vem na listagem, não no getBoard.
+  cardStats?: { total: number; done: number; overdue: number; today: number }
   // Cards que moram em outros quadros, mas onde o responsável deste quadro
   // é membro — mesmo registro, só uma visualização (ver getVisitingCards).
   visitingCards?: WeeklyCard[]

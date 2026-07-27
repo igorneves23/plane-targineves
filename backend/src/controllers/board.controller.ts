@@ -21,7 +21,45 @@ export async function listBoards(req: AuthRequest, res: Response) {
       _count: { select: { columns: true } },
     },
   })
-  res.json(boards)
+
+  // Resumo dos cartões por quadro pro Dashboard (total, concluídos, atrasados
+  // e os de hoje). Uma consulta enxuta só com os campos de data/status — o
+  // volume aqui é pequeno, então agrupar em memória sai mais simples que
+  // montar quatro agregações separadas no banco.
+  const cards = await prisma.card.findMany({
+    select: {
+      status: true,
+      dueDate: true,
+      recurring: true,
+      nextExecution: true,
+      column: { select: { boardId: true } },
+    },
+  })
+
+  const now = new Date()
+  const endOfToday = new Date(now)
+  endOfToday.setHours(23, 59, 59, 999)
+
+  const statsByBoard = new Map<string, { total: number; done: number; overdue: number; today: number }>()
+  for (const card of cards) {
+    const boardId = card.column.boardId
+    const stats = statsByBoard.get(boardId) ?? { total: 0, done: 0, overdue: 0, today: 0 }
+    stats.total++
+
+    if (card.status === 'DONE') {
+      stats.done++
+    } else {
+      const reference = card.recurring ? card.nextExecution : card.dueDate
+      if (reference) {
+        if (reference < now) stats.overdue++
+        else if (reference <= endOfToday) stats.today++
+      }
+    }
+    statsByBoard.set(boardId, stats)
+  }
+
+  const empty = { total: 0, done: 0, overdue: 0, today: 0 }
+  res.json(boards.map((board) => ({ ...board, cardStats: statsByBoard.get(board.id) ?? empty })))
 }
 
 export async function createBoard(req: AuthRequest, res: Response) {

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Plus, MoreHorizontal, Trash2, Pencil, ChevronsLeftRight, Clock, LayoutList } from 'lucide-react'
+import { Plus, MoreHorizontal, Trash2, Pencil, ChevronsLeftRight, Clock, LayoutList, Inbox } from 'lucide-react'
 import { Column, Card, WeeklyCard } from '../../types'
 import { CardItem } from './CardItem'
 import { VisitingCardTile } from './VisitingCardTile'
@@ -83,10 +83,10 @@ export function ColumnItem({
       {/* Header */}
       <div
         className={clsx(
-          'flex items-center gap-2 px-3 py-2.5 rounded-2xl',
+          'group/col flex items-center gap-2 px-3 py-2.5 rounded-2xl transition-colors',
           collapsed
-            ? 'flex-col h-full bg-bg1 border border-bdr/5 justify-start pt-4 pb-4'
-            : 'bg-bg1 border border-bdr/5 border-b-0 rounded-b-none'
+            ? 'flex-col h-full bg-bg1 border border-bdr/5 justify-start pt-4 pb-4 hover:bg-bg2/60 cursor-pointer'
+            : 'bg-bg1 border border-bdr/5 border-b-0 rounded-b-none hover:border-bdr/15 cursor-grab active:cursor-grabbing'
         )}
         {...dragProps}
       >
@@ -125,9 +125,15 @@ export function ColumnItem({
               {column.cards.length + visitingCards.length}
             </span>
 
+            {/* Ações da coluna — discretas até o hover no desktop, sempre
+                visíveis no mobile (onde não existe hover) */}
+            <div className={clsx(
+              'flex items-center gap-0.5 shrink-0 transition-opacity',
+              menuOpen ? 'opacity-100' : 'md:opacity-40 md:group-hover/col:opacity-100'
+            )}>
             <button
               onClick={() => setViewMode(viewMode === 'list' ? 'timeline' : 'list')}
-              className="p-1 text-tx3 hover:text-tx1 transition-colors shrink-0"
+              className="p-1 rounded-lg text-tx3 hover:text-tx1 hover:bg-bdr/10 active:scale-90 transition-all shrink-0"
               title={viewMode === 'list' ? 'Ver linha do tempo' : 'Ver lista'}
             >
               {viewMode === 'list' ? <Clock className="w-3.5 h-3.5" /> : <LayoutList className="w-3.5 h-3.5" />}
@@ -135,7 +141,8 @@ export function ColumnItem({
 
             <button
               onClick={() => setCollapsed(true)}
-              className="p-1 text-tx3 hover:text-tx1 transition-colors shrink-0"
+              className="p-1 rounded-lg text-tx3 hover:text-tx1 hover:bg-bdr/10 active:scale-90 transition-all shrink-0"
+              title="Recolher coluna"
             >
               <ChevronsLeftRight className="w-3.5 h-3.5" />
             </button>
@@ -144,7 +151,8 @@ export function ColumnItem({
             <div className="relative shrink-0">
               <button
                 onClick={() => setMenuOpen((v) => !v)}
-                className="p-1 rounded-lg text-tx3 hover:text-tx1 hover:bg-bdr/10 transition-colors"
+                className="p-1 rounded-lg text-tx3 hover:text-tx1 hover:bg-bdr/10 active:scale-90 transition-all"
+                title="Mais ações"
               >
                 <MoreHorizontal className="w-4 h-4" />
               </button>
@@ -169,6 +177,7 @@ export function ColumnItem({
               )}
             </div>
             )}
+            </div>
           </>
         )}
       </div>
@@ -212,6 +221,13 @@ export function ColumnItem({
               {visitingCards.map((card) => (
                 <VisitingCardTile key={card.id} card={card} onClick={() => onCardClick(card)} />
               ))}
+              {column.cards.length === 0 && visitingCards.length === 0 && (
+                <div className="flex flex-col items-center justify-center gap-1 py-8 px-3 rounded-xl border border-dashed border-bdr/10 text-center">
+                  <Inbox className="w-5 h-5 text-tx3/50" />
+                  <p className="text-xs text-tx3">Nenhum cartão aqui</p>
+                  <p className="text-[11px] text-tx3/70">Arraste um cartão ou crie um novo</p>
+                </div>
+              )}
             </div>
           )}
 
@@ -240,9 +256,10 @@ export function ColumnItem({
             ) : (
               <button
                 onClick={() => setAdding(true)}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-tx3 hover:text-tx1 hover:bg-bdr/5 rounded-xl transition-colors"
+                className="group/add w-full flex items-center gap-2 px-3 py-2 text-sm text-tx3 rounded-xl
+                           transition-all duration-150 hover:text-brand-400 hover:bg-brand-500/10"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-4 h-4 transition-transform duration-200 group-hover/add:rotate-90" />
                 Adicionar um cartão
               </button>
             )}

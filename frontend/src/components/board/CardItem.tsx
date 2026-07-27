@@ -22,6 +22,12 @@ function formatDueDate(dateStr: string) {
   return format(d, "dd 'de' MMM", { locale: ptBR })
 }
 
+// Cartão recorrente se guia pela próxima execução, não pelo vencimento — sem
+// esse fallback ele aparecia no quadro sem data nenhuma.
+function scheduleOf(card: Card): string | null {
+  return (card.recurring ? card.nextExecution : card.dueDate) ?? null
+}
+
 interface Props { card: Card; onClick: () => void }
 
 export function CardItem({ card, onClick }: Props) {
@@ -38,7 +44,8 @@ export function CardItem({ card, onClick }: Props) {
   const totalItems = card._count?.checklist ?? card.checklist?.length ?? 0
   const commentCount = card._count?.comments ?? 0
   const isDone = card.status === 'DONE'
-  const isOverdue = card.dueDate && isPast(new Date(card.dueDate)) && card.status !== 'DONE'
+  const schedule = scheduleOf(card)
+  const isOverdue = schedule && isPast(new Date(schedule)) && card.status !== 'DONE'
 
   return (
     <div
@@ -48,10 +55,12 @@ export function CardItem({ card, onClick }: Props) {
       {...listeners}
       onClick={onClick}
       className={clsx(
-        'bg-bg1 border border-bdr/[0.06] rounded-xl p-3 cursor-pointer',
-        'hover:border-bdr/20 hover:shadow-sm transition-all select-none',
+        'group/card relative bg-bg1 border border-bdr/[0.06] rounded-xl p-3 cursor-pointer select-none',
+        'transition-all duration-200 hover:border-bdr/25 hover:bg-bg2/60',
+        'hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 active:translate-y-0 active:shadow-sm',
         isDragging && 'opacity-40 ring-2 ring-brand-500/60 shadow-xl',
-        isDone && 'border-l-4 border-l-green-500/70 bg-green-500/[0.03]'
+        isDone && 'border-l-4 border-l-green-500/70 bg-green-500/[0.03]',
+        isOverdue && !isDone && 'border-l-4 border-l-red-500/70'
       )}
     >
       {/* Etiquetas coloridas */}
@@ -80,15 +89,18 @@ export function CardItem({ card, onClick }: Props) {
             <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PRIORITY_DOT[card.priority] }} />
           )}
 
-          {card.dueDate && (
-            <span className={clsx(
-              'inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full',
-              isOverdue
-                ? 'bg-red-500/15 text-red-400 border border-red-500/20'
-                : 'bg-bdr/5 text-tx3 border border-bdr/5'
-            )}>
+          {schedule && (
+            <span
+              title={format(new Date(schedule), "dd/MM/yyyy 'às' HH:mm")}
+              className={clsx(
+                'inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full',
+                isOverdue
+                  ? 'bg-red-500/15 text-red-400 border border-red-500/20'
+                  : 'bg-bdr/5 text-tx3 border border-bdr/5'
+              )}
+            >
               <Clock className="w-3 h-3" />
-              {formatDueDate(card.dueDate)}
+              {formatDueDate(schedule)}
               {card.recurring && <RefreshCw className="w-2.5 h-2.5 ml-0.5" />}
             </span>
           )}

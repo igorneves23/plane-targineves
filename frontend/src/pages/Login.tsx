@@ -27,16 +27,28 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-bg0 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
+    <div className="relative min-h-screen bg-bg0 flex items-center justify-center p-4 overflow-hidden">
+      {/* Brilho de fundo — dá profundidade à tela sem competir com o formulário */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[38rem] h-[38rem] rounded-full blur-3xl
+                   bg-brand-500/20 dark:bg-brand-500/10"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-48 -right-32 w-[30rem] h-[30rem] rounded-full blur-3xl
+                   bg-brand-400/10 dark:bg-brand-400/[0.07]"
+      />
+
+      <div className="relative w-full max-w-sm animate-slide-up">
         <div className="flex items-center gap-3 justify-center mb-10">
-          <div className="w-10 h-10 bg-brand-500 rounded-xl flex items-center justify-center">
+          <div className="w-10 h-10 bg-brand-500 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/30">
             <span className="text-white font-bold text-lg">P</span>
           </div>
           <span className="text-2xl font-bold text-tx1">Plane</span>
         </div>
 
-        <div className="bg-bg1 border border-bdr/10 rounded-2xl p-8">
+        <div className="bg-bg1/90 backdrop-blur-sm border border-bdr/10 rounded-2xl p-8 shadow-2xl shadow-black/20">
           <h1 className="text-xl font-bold text-tx1 mb-1">Bem-vindo de volta</h1>
           <p className="text-tx3 text-sm mb-6">Entre com sua conta para continuar</p>
 
@@ -67,7 +79,7 @@ export default function Login() {
             </div>
 
             {error && (
-              <div className="px-3 py-2 bg-red-500/10 border border-red-500/20 rounded-lg">
+              <div className="px-3 py-2 bg-red-500/10 border border-red-500/20 rounded-lg animate-slide-up">
                 <p className="text-sm text-red-400">{error}</p>
               </div>
             )}
