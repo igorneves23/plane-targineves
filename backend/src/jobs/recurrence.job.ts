@@ -39,6 +39,30 @@ function nextDate(type: string, from: Date, monthlyWeek?: number | null, monthly
   return d
 }
 
+/**
+ * Próxima execução contada a partir da execução que acabou de vencer — não
+ * a partir de "agora". Contar de agora empurrava o horário pra frente a cada
+ * rodada (uma tarefa das 8h virava 9h na semana seguinte, se o cron rodasse
+ * às 9h). Repete até cair no futuro, então uma parada longa do servidor não
+ * gera uma enxurrada de renovações atrasadas — volta direto pro próximo
+ * horário válido.
+ */
+function nextExecutionAfter(
+  type: string,
+  lastExecution: Date,
+  now: Date,
+  monthlyWeek?: number | null,
+  monthlyWeekday?: number | null,
+): Date {
+  let next = nextDate(type, lastExecution, monthlyWeek, monthlyWeekday)
+  // Teto de segurança: DAILY parado por ~5 anos ainda converge; sem o teto,
+  // uma data inválida em algum campo travaria o job num laço infinito.
+  for (let guard = 0; next <= now && guard < 2000; guard++) {
+    next = nextDate(type, next, monthlyWeek, monthlyWeekday)
+  }
+  return next
+}
+
 // Exportada separada do cron pra poder ser testada diretamente.
 export async function runRecurrenceTick() {
   const now = new Date()
@@ -66,35 +90,29 @@ export async function runRecurrenceTick() {
       continue
     }
 
-    const count = await prisma.card.count({ where: { columnId: card.columnId } })
-    // A ocorrência gerada é um cartão comum, NÃO recorrente — só o
-    // original continua como "modelo" da recorrência. Se a cópia herdasse
-    // recurring/nextExecution, na rodada seguinte o cron acharia os dois
-    // vencidos e criaria dois novos: duplicação exponencial (1→2→4→8...),
-    // com e-mail de lembrete multiplicado junto.
-    const newCard = await prisma.card.create({
-      data: {
-        columnId: card.columnId,
-        title: card.title,
-        description: card.description,
-        priority: card.priority,
-        status: 'TODO',
-        position: count,
-        createdById: card.createdById,
-        durationMinutes: card.durationMinutes,
-      },
-    })
+    // Virou o período: o próprio cartão renasce em vez de gerar uma cópia.
+    // A conclusão vale só para o período que passou — na semana/mês/ano novo
+    // a tarefa volta a ser pendente, com o checklist zerado. Sem cópias, o
+    // quadro não acumula cartões repetidos e o histórico de comentários,
+    // etiquetas e responsáveis fica todo no mesmo cartão.
+    const renewedExecution = nextExecutionAfter(
+      card.recurringType!,
+      card.nextExecution!,
+      now,
+      card.monthlyWeek,
+      card.monthlyWeekday,
+    )
 
-    if (card.members.length > 0) {
-      await prisma.cardMember.createMany({
-        data: card.members.map((m) => ({ cardId: newCard.id, userId: m.userId })),
-      })
-    }
-
-    await prisma.card.update({
-      where: { id: card.id },
-      data: { nextExecution: nextDate(card.recurringType!, now, card.monthlyWeek, card.monthlyWeekday) },
-    })
+    await prisma.$transaction([
+      prisma.card.update({
+        where: { id: card.id },
+        data: { status: 'TODO', nextExecution: renewedExecution },
+      }),
+      prisma.checklistItem.updateMany({
+        where: { cardId: card.id },
+        data: { completed: false, completedById: null, completedAt: null },
+      }),
+    ])
 
     const boardUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/board/${card.column.board.id}`
     for (const member of card.members) {
@@ -114,7 +132,7 @@ export async function runRecurrenceTick() {
   }
 
   if (due.length > 0) {
-    console.log(`[Recurrence] Criados ${due.length} cartões recorrentes`)
+    console.log(`[Recurrence] ${due.length} cartão(ões) recorrente(s) renovado(s)`)
   }
 }
 

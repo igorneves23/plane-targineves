@@ -585,6 +585,32 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                       className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-40"
                     />
                   </div>
+
+                  {/* A conclusão de um cartão recorrente vale só até a próxima
+                      execução — deixa isso explícito pra não parecer que o
+                      cartão "voltou sozinho" pra pendente. */}
+                  {card.nextExecution && (
+                    <p className={clsx(
+                      'text-[11px] leading-relaxed rounded-lg px-2 py-1.5 border',
+                      card.status === 'DONE'
+                        ? 'text-amber-500/90 bg-amber-500/10 border-amber-500/20'
+                        : 'text-tx3 bg-bdr/5 border-bdr/5'
+                    )}>
+                      {card.status === 'DONE' ? (
+                        <>
+                          Conclusão temporária: em{' '}
+                          <strong>{format(new Date(card.nextExecution), "dd/MM 'às' HH:mm")}</strong>{' '}
+                          este cartão volta a ficar pendente e o checklist é desmarcado.
+                        </>
+                      ) : (
+                        <>
+                          Renova em{' '}
+                          <strong>{format(new Date(card.nextExecution), "dd/MM 'às' HH:mm")}</strong>
+                          {' '}— concluir agora vale só até lá.
+                        </>
+                      )}
+                    </p>
+                  )}
                 </div>
               )}
             </div>
