@@ -18,6 +18,8 @@ const cardSchema = z.object({
   durationMinutes: z.number().int().min(5).max(24 * 60).optional().nullable(),
   monthlyWeek: z.number().int().min(-1).max(4).optional().nullable(),
   monthlyWeekday: z.number().int().min(0).max(6).optional().nullable(),
+  notifyEmail: z.boolean().optional(),
+  notifyLeadMinutes: z.number().int().min(5).max(43200).optional().nullable(),
 })
 
 const cardInclude = {

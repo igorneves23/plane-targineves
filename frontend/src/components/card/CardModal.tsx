@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   X, Trash2, Calendar, Flag, RotateCcw, Users, Tag, Paperclip,
-  MessageSquare, CheckSquare, AlignLeft, Edit3, Check, Lock, ArrowRightLeft
+  MessageSquare, CheckSquare, AlignLeft, Edit3, Check, Lock, ArrowRightLeft, Bell
 } from 'lucide-react'
 import { Card, Priority, CardStatus, RecurringType, Column } from '../../types'
 import { cardService } from '../../services/card.service'
@@ -53,6 +53,19 @@ const MONTHLY_WEEKS = [
   { value: 3, label: 'Terceira' },
   { value: 4, label: 'Quarta' },
   { value: -1, label: 'Última' },
+]
+
+const LEAD_TIME_OPTIONS = [
+  { value: 10, label: '10 minutos antes' },
+  { value: 30, label: '30 minutos antes' },
+  { value: 60, label: '1 hora antes' },
+  { value: 120, label: '2 horas antes' },
+  { value: 180, label: '3 horas antes' },
+  { value: 360, label: '6 horas antes' },
+  { value: 720, label: '12 horas antes' },
+  { value: 1440, label: '1 dia antes' },
+  { value: 2880, label: '2 dias antes' },
+  { value: 10080, label: '1 semana antes' },
 ]
 
 interface Props { card: Card; onClose: () => void }
@@ -562,6 +575,44 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                       className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-40"
                     />
                   </div>
+                </div>
+              )}
+            </div>
+
+            {/* Notificação por e-mail */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Bell className="w-3 h-3 text-tx3" />
+                <p className="text-xs font-semibold text-tx3 uppercase tracking-wider">Notificação por e-mail</p>
+              </div>
+              <label className={clsx('flex items-center gap-2 mb-2', locked ? 'cursor-default' : 'cursor-pointer')}>
+                <input
+                  type="checkbox"
+                  checked={card.notifyEmail}
+                  disabled={locked}
+                  onChange={(e) => patch({ notifyEmail: e.target.checked } as Partial<Card>)}
+                  className="accent-brand-500 w-4 h-4 disabled:opacity-40"
+                />
+                <span className="text-xs text-tx2">Notificar responsáveis por e-mail</span>
+              </label>
+              {card.notifyEmail && (
+                <div>
+                  <label className="text-xs text-tx3 block mb-1">Antecedência do envio</label>
+                  <select
+                    value={card.notifyLeadMinutes ?? 60}
+                    disabled={locked}
+                    onChange={(e) => patch({ notifyLeadMinutes: Number(e.target.value) } as Partial<Card>)}
+                    className="w-full bg-bg2 border border-bdr/10 rounded-lg px-2 py-1.5 text-xs text-tx1 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-40"
+                  >
+                    {LEAD_TIME_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                  {!card.dueDate && !card.nextExecution && (
+                    <p className="text-[11px] text-amber-500/80 mt-1.5">
+                      Defina um vencimento ou uma recorrência com horário para o envio funcionar.
+                    </p>
+                  )}
                 </div>
               )}
             </div>

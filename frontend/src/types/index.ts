@@ -88,6 +88,8 @@ export interface Card {
   durationMinutes?: number | null
   monthlyWeek?: number | null
   monthlyWeekday?: number | null
+  notifyEmail: boolean
+  notifyLeadMinutes?: number | null
   createdById: string
   createdAt: string
   updatedAt: string

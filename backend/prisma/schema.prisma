@@ -120,6 +120,14 @@ model Card {
   urgentHourNotifiedFor   DateTime?
   urgentTenMinNotifiedFor DateTime?
 
+  // Notificação por e-mail configurável por cartão — independente da
+  // prioridade. notifyLeadMinutes é quanto tempo antes do vencimento/próxima
+  // execução o e-mail deve sair; notifiedFor guarda a referência já avisada
+  // pra não duplicar envio (reseta sozinho a cada renovação de recorrência).
+  notifyEmail       Boolean   @default(false)
+  notifyLeadMinutes Int?      @default(60)
+  notifiedFor       DateTime?
+
   column      Column          @relation(fields: [columnId], references: [id], onDelete: Cascade)
   createdBy   User            @relation("CardCreator", fields: [createdById], references: [id])
   members     CardMember[]
