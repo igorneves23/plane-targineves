@@ -1,6 +1,7 @@
 import cron from 'node-cron'
 import { prisma } from '../lib/prisma'
 import { sendCardReminderEmail } from '../lib/mailer'
+import { nextSundayResetAfter } from '../lib/weekday'
 
 // Calcula o Nº dia-da-semana de um mês (ex: 2ª segunda-feira de março).
 // nth: 1-4 = primeira..quarta ocorrência; -1 = última ocorrência do mês.
@@ -87,6 +88,15 @@ export async function runRecurrenceTick() {
         data: { recurring: false, nextExecution: null },
       })
       console.log(`[Recurrence] "${card.title}" encerrada — vencimento atingido`)
+      continue
+    }
+
+    // Semanais não renovam no horário agendado de cada um: todos viram
+    // juntos no domingo às 23h, pra que a segunda comece com a semana
+    // inteira zerada. Até lá o cartão fica como está — pendente (aparecendo
+    // como atrasado, se for o caso) ou concluído. Diários, mensais e anuais
+    // seguem renovando no próprio horário.
+    if (card.recurringType === 'WEEKLY' && now < nextSundayResetAfter(card.nextExecution!)) {
       continue
     }
 

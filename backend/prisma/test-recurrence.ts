@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { runRecurrenceTick } from '../src/jobs/recurrence.job'
+import { nextSundayResetAfter } from '../src/lib/weekday'
 
 /**
  * Teste do job de recorrência: cartão recorrente concluído precisa voltar a
@@ -57,12 +58,35 @@ async function makeCard(opts: {
   return card
 }
 
+/** Lê a hora de parede em Brasília — usado só para conferir os resultados. */
+function emBrasilia(d: Date) {
+  const dtf = new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Sao_Paulo', weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false,
+  })
+  const p = Object.fromEntries(dtf.formatToParts(d).filter((x) => x.type !== 'literal').map((x) => [x.type, x.value]))
+  return { diaSemana: p.weekday, hora: Number(p.hour) % 24, minuto: Number(p.minute) }
+}
+
 async function main() {
   const now = new Date()
   const col = await prisma.column.findFirstOrThrow({ where: { boardId: 'seed-board-1' } })
 
-  // ── 1. Semanal concluído, vencido há 2 dias ────────────────────────────
-  const lastWeek = new Date(now); lastWeek.setDate(now.getDate() - 2); lastWeek.setHours(7, 30, 0, 0)
+  // ── 0. O momento de reset é sempre domingo 23h no fuso da igreja ───────
+  console.log('── Momento de reset (domingo 23h de Brasília) ──')
+  for (const diasAtras of [0, 3, 9, 40, 200]) {
+    const base = new Date(now.getTime() - diasAtras * 24 * 3600 * 1000)
+    const reset = nextSundayResetAfter(base)
+    const w = emBrasilia(reset)
+    check(
+      `a partir de ${diasAtras}d atrás → domingo 23:00`,
+      w.diaSemana.startsWith('dom') && w.hora === 23 && w.minuto === 0,
+      `${w.diaSemana} ${String(w.hora).padStart(2, '0')}:${String(w.minuto).padStart(2, '0')} (${reset.toISOString()})`,
+    )
+    check(`  e é estritamente depois da base`, reset > base)
+  }
+
+  // ── 1. Semanal concluído, vencido há mais de uma semana ────────────────
+  const lastWeek = new Date(now); lastWeek.setDate(now.getDate() - 30); lastWeek.setHours(7, 30, 0, 0)
   const semanal = await makeCard({ title: 'REC semanal', type: 'WEEKLY', nextExecution: lastWeek })
 
   const cardsBefore = await prisma.card.count({ where: { columnId: col.id } })
@@ -71,7 +95,7 @@ async function main() {
 
   const s = await prisma.card.findUniqueOrThrow({ where: { id: semanal.id }, include: { checklist: true } })
 
-  console.log('\n── Semanal concluído que venceu ──')
+  console.log('\n── Semanal concluído, já passou de um domingo 23h ──')
   check('volta para pendente (TODO)', s.status === 'TODO', `status=${s.status}`)
   check('checklist desmarcado', s.checklist.every((i) => !i.completed && !i.completedAt && !i.completedById))
   check('continua recorrente', s.recurring === true)
@@ -83,6 +107,19 @@ async function main() {
     `${String(s.nextExecution!.getHours()).padStart(2, '0')}:${String(s.nextExecution!.getMinutes()).padStart(2, '0')}`,
   )
   check('mantém o mesmo dia da semana', s.nextExecution!.getDay() === lastWeek.getDay())
+
+  // ── 1b. Semanal que passou do horário mas o domingo ainda não chegou ───
+  // Um cartão vencido há 1 minuto está sempre dentro da semana corrente:
+  // o próximo domingo 23h ainda está à frente, então ele NÃO pode renovar.
+  const agoraPoucoAtras = new Date(now.getTime() - 60_000)
+  const naSemana = await makeCard({ title: 'REC semanal em curso', type: 'WEEKLY', nextExecution: agoraPoucoAtras })
+  await runRecurrenceTick()
+  const ns = await prisma.card.findUniqueOrThrow({ where: { id: naSemana.id }, include: { checklist: true } })
+
+  console.log('\n── Semanal vencido, mas ainda antes do domingo 23h ──')
+  check('conclusão preservada até domingo', ns.status === 'DONE', `status=${ns.status}`)
+  check('checklist continua marcado', ns.checklist.every((i) => i.completed))
+  check('próxima execução inalterada', ns.nextExecution!.getTime() === agoraPoucoAtras.getTime())
 
   // ── 2. Deriva de horário: parado há muito tempo ────────────────────────
   const velho = new Date(now); velho.setDate(now.getDate() - 40); velho.setHours(9, 0, 0, 0)

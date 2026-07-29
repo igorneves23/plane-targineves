@@ -68,6 +68,26 @@ const LEAD_TIME_OPTIONS = [
   { value: 10080, label: '1 semana antes' },
 ]
 
+/**
+ * Momento em que um cartão recorrente volta a ficar pendente.
+ * Semanais viram todos juntos no domingo às 23h (a semana inteira começa
+ * zerada na segunda); os outros tipos renovam no próprio horário agendado.
+ * Espelha a regra de recurrence.job.ts no backend.
+ */
+function renewalMoment(card: Card): Date | null {
+  if (!card.nextExecution) return null
+  const scheduled = new Date(card.nextExecution)
+  if (card.recurringType !== 'WEEKLY') return scheduled
+
+  const d = new Date(scheduled)
+  d.setHours(23, 0, 0, 0)
+  while (d <= scheduled || d.getDay() !== 0) {
+    d.setDate(d.getDate() + 1)
+    d.setHours(23, 0, 0, 0)
+  }
+  return d
+}
+
 interface Props { card: Card; onClose: () => void }
 
 export function CardModal({ card: initialCard, onClose }: Props) {
@@ -587,30 +607,36 @@ export function CardModal({ card: initialCard, onClose }: Props) {
                   </div>
 
                   {/* A conclusão de um cartão recorrente vale só até a próxima
-                      execução — deixa isso explícito pra não parecer que o
+                      renovação — deixa isso explícito pra não parecer que o
                       cartão "voltou sozinho" pra pendente. */}
-                  {card.nextExecution && (
-                    <p className={clsx(
-                      'text-[11px] leading-relaxed rounded-lg px-2 py-1.5 border',
-                      card.status === 'DONE'
-                        ? 'text-amber-500/90 bg-amber-500/10 border-amber-500/20'
-                        : 'text-tx3 bg-bdr/5 border-bdr/5'
-                    )}>
-                      {card.status === 'DONE' ? (
-                        <>
-                          Conclusão temporária: em{' '}
-                          <strong>{format(new Date(card.nextExecution), "dd/MM 'às' HH:mm")}</strong>{' '}
-                          este cartão volta a ficar pendente e o checklist é desmarcado.
-                        </>
-                      ) : (
-                        <>
-                          Renova em{' '}
-                          <strong>{format(new Date(card.nextExecution), "dd/MM 'às' HH:mm")}</strong>
-                          {' '}— concluir agora vale só até lá.
-                        </>
-                      )}
-                    </p>
-                  )}
+                  {(() => {
+                    const renewal = renewalMoment(card)
+                    if (!renewal) return null
+                    const quando = format(renewal, "dd/MM 'às' HH:mm")
+                    const semanal = card.recurringType === 'WEEKLY'
+                    return (
+                      <p className={clsx(
+                        'text-[11px] leading-relaxed rounded-lg px-2 py-1.5 border',
+                        card.status === 'DONE'
+                          ? 'text-amber-500/90 bg-amber-500/10 border-amber-500/20'
+                          : 'text-tx3 bg-bdr/5 border-bdr/5'
+                      )}>
+                        {card.status === 'DONE' ? (
+                          <>
+                            Conclusão temporária: {semanal ? 'na virada da semana, ' : 'em '}
+                            <strong>{semanal ? `domingo ${quando}` : quando}</strong>
+                            , este cartão volta a ficar pendente e o checklist é desmarcado.
+                          </>
+                        ) : (
+                          <>
+                            {semanal ? 'Renova na virada da semana, ' : 'Renova em '}
+                            <strong>{semanal ? `domingo ${quando}` : quando}</strong>
+                            {' '}— concluir agora vale só até lá.
+                          </>
+                        )}
+                      </p>
+                    )
+                  })()}
                 </div>
               )}
             </div>
